@@ -1,0 +1,139 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Math">
+      <UniqueIdentifier>{de65852f-7527-4596-8e01-73b0ab2e29fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shapes">
+      <UniqueIdentifier>{046d769c-3f38-46f7-9c65-f26563b470ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{57346606-fec7-4318-8f28-a36ae2a29095}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Image">
+      <UniqueIdentifier>{95177704-b967-45ad-a688-98a22960a1d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lights">
+      <UniqueIdentifier>{3c55407e-533e-4e4f-81a1-22e7718d3607}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{fdf4f160-6b54-48ea-a754-fbac9847e3e5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="IMAGE.CPP">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="SCENE.CPP">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="PLANE.CPP">
+      <Filter>Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="SPHERE.CPP">
+      <Filter>Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="INTR.CPP">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="FRAME.CPP">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="MAIN.CPP" />
+    <ClCompile Include="WIN.CPP" />
+    <ClCompile Include="MODIFICATE.CPP">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="RES.CPP">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="BOX.CPP">
+      <Filter>Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="TRIANGLE.CPP">
+      <Filter>Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="PRIM.CPP">
+      <Filter>Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="OBJ.CPP">
+      <Filter>Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="GREBANIY_TOR.CPP">
+      <Filter>Shapes</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="IMAGE.H">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="LIGHT.H">
+      <Filter>Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="CAMERA.H">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="COLOR.H">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="MTH.H">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="MTHDEF.H">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="RAY.H">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="VEC.H">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="SCENE.H">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="PLANE.H">
+      <Filter>Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="SHAPE.H">
+      <Filter>Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="SHAPE_LIST.H">
+      <Filter>Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="SPHERE.H">
+      <Filter>Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="INTR.H">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="POINT_LIGHT.H">
+      <Filter>Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="FRAME.H">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="DEF.H" />
+    <ClInclude Include="WIN.H" />
+    <ClInclude Include="MODIFICATE.H">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="RES.H">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="BOX.H">
+      <Filter>Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="TRIANGLE.H">
+      <Filter>Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="PRIM.H">
+      <Filter>Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="OBJ.H">
+      <Filter>Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="GREBANIY_TOR.H">
+      <Filter>Shapes</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
