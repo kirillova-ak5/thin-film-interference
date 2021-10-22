@@ -15,14 +15,14 @@ class shape
 public:
 
   color Color;
-  material Mtl;
+  pbr_material Mtl;
   /* Default contructor method */
   shape( color Col = color(0, 255, 0) ) : Color(Col)
   {
   } /* End of default contructor method */
 
   /* Default contructor method */
-  shape( material M ) : Mtl(M)
+  shape( pbr_material M ) : Mtl(M)
   {
   } /* End of default contructor method */
 

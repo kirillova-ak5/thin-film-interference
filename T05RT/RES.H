@@ -37,6 +37,20 @@ public:
 
 }; /* End of 'material' class */
 
+/* pbr_material class */
+class pbr_material
+{
+public:
+    color Albedo;
+    DBL Roughness, Metallic;
+
+    enviroment Envi;       // Enviroment
+
+    /* Default constructor method */
+    pbr_material(color a = color(0.8, 0.3, 0.9), DBL r = 0.9, DBL m = 0.0);
+
+}; /* End of 'pbr_material' class */
+
 #endif // __RES_H_
 
 /* END OF 'RES.H' FILE */

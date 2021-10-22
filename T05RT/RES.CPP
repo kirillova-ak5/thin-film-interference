@@ -20,5 +20,10 @@ material::material( color a, color d, color s, color tr, color rofl ) : Ka(a), K
 {
 }
 
+/* Default constructor method */
+pbr_material::pbr_material(color a, DBL r, DBL m) : Albedo(a), Roughness(r), Metallic(m)
+{
+}
+
 
 /* END OF 'RES.CPP' FILE */

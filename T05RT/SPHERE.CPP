@@ -7,7 +7,7 @@
 #include "sphere.h"
 
 /* Default contructor method */
-sphere::sphere( DBL radius, const vec &center ) : shape(material((color(0.1), color(0.7, 0.3, 0.8), color(0.2), color(0.3), color(0.0)))), C(center), R(radius), R2(R * R)
+sphere::sphere( DBL radius, const vec &center ) : shape(pbr_material(color(0.7, 0.3, 0.8), 0.2, 1.0)), C(center), R(radius), R2(R * R)
 {
   Color = color(0, 0, 243);
 }  /* End of default contructor method */

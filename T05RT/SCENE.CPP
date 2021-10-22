@@ -14,15 +14,9 @@ scene::scene( VOID ) : BackGround(0.2, 0.6, 0.4), MaxRecource(8), CurrentRecourc
   Objects.push_back(new plane(vec(0, 1, 0), -0.5));
   //Objects.back()->Mtl.Refl = color(0.9);
   Objects.push_back(new plane(vec(1, 0, 1), -10.5));
-  Objects.back()->Mtl.Refl = color(0.2);
-  Objects.back()->Mtl.Kd = color(0);
-  Objects.back()->Mtl.Ks = color(0);
 
   //Objects.push_back(new sphere(1, vec(0)));
   Objects.push_back(new sphere(0.3, vec(3, 0.5, 3)));
-  Objects.back()->Mtl.Refl = color(0.7);
-  Objects.back()->Mtl.Kd = color(0.1, 0.2, 0.2);
-  Objects.back()->Mtl.Ks = color(0);
   Objects.push_back(new sphere(0.2, vec(0, 3, 0)));
   Objects.push_back(new sphere(0.7, vec(2, 2, 0)));
   Objects.push_back(new sphere(1.3, vec(0, 0.4, 1.4)));
@@ -104,64 +98,47 @@ color scene::Trace( const ray &Ray, const enviroment &Env, DBL Weight )
  *   RETURNS  :
  *     - color
  */
-color scene::Shade( const intr &In, const vec &V, const enviroment &Env, DBL Weight )
+color scene::Shade( const intr &In, const vec &Vec, const enviroment &Env, DBL Weight )
 {
+  vec V = -Vec;
   /* Rezult color */
   color Col(0, 0, 0);
   /* Reflected ray */
-  vec r = In.N * 2 * (-V & In.N) + V;
-  r.Normalize();
+  vec Reflected = In.N * 2 * (V & In.N) - V;
+  Reflected.Normalize();
   /* Ambient illumination */
-  Col += In.Object->Mtl.Ka;
+  Col += color(0.05);
   /* Diffuze & Specular illumination */
   for (auto l : Lights)
   {
-    vec L;
-    DBL d = l->Att.Apply(l->Get(In.P, &L));
+    vec ToLight, Halfway;
+    DBL d = l->Att.Apply(l->Get(In.P, &ToLight));
     /* Shadows */
     intr ShadI;
-    if (Intersect(ray(In.P + L * mth::Threshold, L), ShadI))
+    if (Intersect(ray(In.P + ToLight * mth::Threshold, ToLight), ShadI))
       if (d == mth::Infinity || d > ShadI.T)
         continue;
-    /* Diffuze */
-    DBL nl = (L & In.N) * d;
-    if (nl > mth::Threshold)
-      Col += In.Object->Mtl.Kd * l->Color * nl;
-    /* Specular */
-    DBL rl = (r & L) * d;
-    if (rl > mth::Threshold)
-      Col += In.Object->Mtl.Ks * l->Color * pow(rl, In.Object->Mtl.Phong);
+    /* Lighting */
+    Halfway = (ToLight + V).Normalize();
+    color F0 = mth::lerp(In.Object->Mtl.Albedo, color(0.04), In.Object->Mtl.Metallic);
+    color FresnelSchlick = F0 + ((color(1.0) - F0) * pow(1.0 - max(!V & In.N, 0.0), 5.0));
+    DBL DistributionGGX = mth::sqr(In.Object->Mtl.Roughness) / (mth::PI * mth::sqr(mth::sqr(max(In.N & Halfway, 0.0)) * (mth::sqr(In.Object->Mtl.Roughness) - 1.0) + 1.0));
+    DBL K = mth::sqr(In.Object->Mtl.Roughness + 1) / 8.0;
+    DBL GeomObstructionGGX = max(!V & In.N, 0.0) / (max(!V & In.N, 0.0) * (1 - K) + K);
+    DBL GeomSelfshadingGGX = max(!ToLight & In.N, 0.0) / (max(!ToLight & In.N, 0.0) * (1 - K) + K);
+    DBL GeomFunc = GeomObstructionGGX * GeomSelfshadingGGX;
+
+    color Specular = FresnelSchlick * (DistributionGGX * GeomFunc / (4.0 * (max(!V & In.N, 0.0) + mth::Threshold))); // /* / (4.0 * max(!V & In.N, 0.0) * max(!ToLight & In.N, 0.0))*/);
+
+    color Kd = color(1.0) - FresnelSchlick;
+    color Diffuse = In.Object->Mtl.Albedo * (1.0 - In.Object->Mtl.Metallic) * Kd * (1.0 / mth::PI);
+
+    Col += (Diffuse + Specular) * d * max(!ToLight & In.N, 0.0);
   }
 
   if (Weight <= mth::Threshold || In.T >= mth::Infinity)
-    return Col;
-  /* Reflection */
-  if (In.Object->Mtl.Refl.Max() * Weight >= mth::Threshold)
-  {
-    DBL e = 1;
-    DBL coef = In.Object->Mtl.Refl.Max() * Weight;
-    //e = exp(- In.Object->Mtl.Refl.Max());
-    e = exp(-In.T * Env.Decay);
-    Col +=  Trace(ray(In.P + r * mth::Threshold, r), Env, coef) * coef * e; /* DER'MO */
-    //Col += Trace(ray(In.P + r * mth::Threshold, r), Env, coef)  * In.Object->Mtl.Refl.Max(); /* DER'MO */
-  }
+    return Col.Clamp();
 
-  ///* Refraction */
-  //DBL coef = In.Object->Mtl.Trans.Max() * Weight;
-  //if (coef >= mth::Threshold)
-  //{
-  //  DBL e = 1, 
-  //      eta = In.IsEnter? In.Object->Mtl.Envi.Refr / Env.Refr : 1 / Env.Refr;
-  //  DBL vn = In.N & V,
-  //      cf = 1 - (1 - vn * vn) * eta * eta;
-
-  //  if (cf > mth::Threshold)
-  //  { 
-  //    vec T = (V - In.N * vn) * eta - In.N * sqrt(cf);
-  //    e = exp(-In.T * Env.Decay);
-  //    Col +=  Trace(ray(In.P + T * mth::Threshold, T), In.Object->Mtl.Envi, coef) * coef * e; /* DER'MO */
-  //  }
-  //}
   return Col.Clamp();
 }
 

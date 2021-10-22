@@ -28,6 +28,18 @@ namespace mth
 	//*a = *b;
 	//*b = tmp;
  // }
+
+  template<typename type>
+  inline type sqr(type op)
+  {
+    return op * op;
+  }
+
+  template<typename type>
+  inline type lerp(type op1, type op2, DBL a)
+  {
+    return op1 * a + op2 * (1 - a);
+  }
 }
 
 

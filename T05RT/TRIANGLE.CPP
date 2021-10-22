@@ -13,7 +13,7 @@ triangle::triangle(VOID) : P1(1), P0(0), P2(2), Pl(vec(1), 1)
 }
 
 /* Contructor method */
-triangle::triangle( const vec &p1, const vec &p2, const vec &p3 ) : shape(material(color(0.1), color(0.9, 0.0, 0.1), color(0.15), color(0.0), color(0.0))), P1(p1), P2(p2), P0(p3), n((P1 - P0) % (P2 - P0)), d(n & P0), Pl(n, d)
+triangle::triangle( const vec &p1, const vec &p2, const vec &p3 ) : shape(pbr_material(color(0.9, 0.0, 0.1), 0.15, 0.0)), P1(p1), P2(p2), P0(p3), n((P1 - P0) % (P2 - P0)), d(n & P0), Pl(n, d)
 {
   S1 = P1 - P0;
   S2 = P2 - P1;

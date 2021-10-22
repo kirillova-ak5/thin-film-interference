@@ -58,6 +58,41 @@ namespace mth
       return Rez;
     } /* End of operator* method */
 
+    /* Operator+ method
+     *   ARGUMENTS:
+     *     - color to addition
+     *         color C;
+     *   RETURNS  :
+     *     - new color
+     *         color R;
+     */
+    color operator+(color C)
+    {
+        color Rez;
+        Rez.R = R + C.R;
+        Rez.G = G + C.G;
+        Rez.B = B + C.B;
+        return Rez;
+    } /* End of operator* method */
+
+    /* Operator- method
+     *   ARGUMENTS:
+     *     - color to sub
+     *         color C;
+     *   RETURNS  :
+     *     - new color
+     *         color R;
+     */
+    color operator-(color C)
+    {
+        color Rez;
+        Rez.R = R - C.R;
+        Rez.G = G - C.G;
+        Rez.B = B - C.B;
+        return Rez;
+    } /* End of operator- method */
+
+
     /* Operator* method
      *   ARGUMENTS: 
      *     - number to multiplication

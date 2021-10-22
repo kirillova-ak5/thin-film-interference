@@ -7,7 +7,7 @@
 #include "grebaniy_tor.h"
 
 /* Default contructor method */
-grebaniy_tor::grebaniy_tor( DBL neRad, DBL nerad ) : R(neRad), r(nerad), shape(material(color(0), color(1, 0, 0), color(0)))
+grebaniy_tor::grebaniy_tor( DBL neRad, DBL nerad ) : R(neRad), r(nerad), shape(pbr_material(color(1, 0, 0)))
 {
 }
 

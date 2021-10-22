@@ -8,7 +8,7 @@
 
 
 /* Contructor method */
-box::box( const vec &p1, const vec &p2 ) : shape(material(color(0.1), color(0.3, 0.8, 0.9), color(0.15), color(1.0), color(0.0))), P1(p1), P2(p2)
+box::box( const vec &p1, const vec &p2 ) : shape(pbr_material(color(0.3, 0.8, 0.9), 0.8, 0.1)), P1(p1), P2(p2)
 {
 }  /* End of contructor method */
 
@@ -87,7 +87,7 @@ BOOL box::Intersect( const ray &Ray, intr *Intr )
     if (tn > tf || tf < mth::Threshold)
       return FALSE;
   }
-  Intr->Set(this, tn, (!A)? vec(0, 0, 1) : (A == 1)? vec(1, 0, 0) : vec(0, 1, 0), Ray.Org + Ray.Dir * tn);
+  Intr->Set(this, tn, (!A)? vec(1, 0, 0) : (A == 1)? vec(0, 1, 0) : vec(0, 0, 1), Ray.Org + Ray.Dir * tn);
   return TRUE;
 } /* End of 'Intersect' method */
 

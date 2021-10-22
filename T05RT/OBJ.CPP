@@ -40,7 +40,7 @@ struct VERTEX
 }; /* End of 'VERTEX' structure */
 
 /* Contructor method */
-obj::obj( VOID ) : shape(material(color(0.1), color(0.8, 0.4, 0.9), color(0.15), color(0.0), color(0.0)))
+obj::obj( VOID ) : shape(pbr_material(color(0.8, 0.4, 0.9), 0.15, 0.0 ))
 {
 }  /* End of contructor method */
 
