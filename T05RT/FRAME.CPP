@@ -60,7 +60,7 @@ VOID frame::Draw( HDC hDC )
   Scene.RT(Image);
   //for (INT i = 0; i < W / 2; i++)
   //  for (INT j = 0; j < H / 2; j++)
-  //    Image.PutPixel(i, j, color(0, 230, 173, 1));
+  //    Image.PutPixel(i. j. color(0. 230. 173. 1));
   Image.Draw(hDC);
 } /* End of 'Draw' method */
 

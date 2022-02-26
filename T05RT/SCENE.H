@@ -19,7 +19,7 @@ public:
   std::vector<shape *> Objects; /* Objects on scene */
   std::vector<point_light *> Lights; /* Lights on scene */
   camera Camera;                /* Camera */
-  color BackGround;
+  color BackGround, DebugColor;
   INT CurrentRecource, MaxRecource;
 
   ///frame Frame;                  /* Frame */
@@ -54,7 +54,7 @@ public:
    *     - intr if shape is found, void intr if not
    *         intr MinIntr;
    */
-  color Trace( const ray &Ray, const enviroment &Env, DBL Weight );
+  double Trace( const ray &Ray, const enviroment &Env, DBL Weight );
 
   /* Point shading method 
    *   ARGUMENTS:
@@ -64,7 +64,7 @@ public:
    *   RETURNS  :
    *     - color
    */
-  color Shade( const intr &In, const vec &V, const enviroment &Env, DBL Weight );
+  double Shade( const intr &In, const vec &V, const enviroment &Env, DBL Weight, DBL Lambda );
 
   BOOL Intersect( const ray &R, intr &I );
 

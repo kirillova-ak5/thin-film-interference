@@ -58,7 +58,24 @@ namespace mth
       return Rez;
     } /* End of operator* method */
 
-    /* Operator+ method
+    /* Operator/ method
+     *   ARGUMENTS:
+     *     - color to divide
+     *         color C;
+     *   RETURNS  :
+     *     - new color
+     *         color R;
+     */
+    color operator/(color C)
+    {
+        color Rez;
+        Rez.R = R / C.R;
+        Rez.G = G / C.G;
+        Rez.B = B / C.B;
+        return Rez;
+    } /* End of operator/ method */
+
+      /* Operator+ method
      *   ARGUMENTS:
      *     - color to addition
      *         color C;
@@ -153,6 +170,18 @@ namespace mth
         B = fabs(B);
       return *this; 
     } /* End of 'Max' method */
+
+    color Normalize(void)
+    {
+        Type l = R + G + B;
+        if (R > 1.0 || G > 1.0 || B > 1.0)
+            return color(R / l, G / l, B / l);
+        else
+            return *this;
+    }
+
+    // lambdas should be sorted
+    static color FromIntensities(double* intensities, double* lambdas, int numOfIntensities);
   };
 }
 #endif // __COLOR_H_

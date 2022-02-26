@@ -114,6 +114,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BOX.CPP" />
+    <ClCompile Include="COLOR_TABLE.CPP" />
     <ClCompile Include="FRAME.CPP" />
     <ClCompile Include="GREBANIY_TOR.CPP" />
     <ClCompile Include="IMAGE.CPP" />
@@ -126,6 +127,7 @@
     <ClCompile Include="RES.CPP" />
     <ClCompile Include="SCENE.CPP" />
     <ClCompile Include="SPHERE.CPP" />
+    <ClCompile Include="TEXTURE.CPP" />
     <ClCompile Include="TRIANGLE.CPP" />
     <ClCompile Include="WIN.CPP" />
   </ItemGroup>
@@ -133,6 +135,7 @@
     <ClInclude Include="BOX.H" />
     <ClInclude Include="CAMERA.H" />
     <ClInclude Include="COLOR.H" />
+    <ClInclude Include="COLOR_TABLE.H" />
     <ClInclude Include="DEF.H" />
     <ClInclude Include="FRAME.H" />
     <ClInclude Include="GREBANIY_TOR.H" />
@@ -152,6 +155,7 @@
     <ClInclude Include="SHAPE.H" />
     <ClInclude Include="SHAPE_LIST.H" />
     <ClInclude Include="SPHERE.H" />
+    <ClInclude Include="TEXTURE.H" />
     <ClInclude Include="TRIANGLE.H" />
     <ClInclude Include="VEC.H" />
     <ClInclude Include="WIN.H" />

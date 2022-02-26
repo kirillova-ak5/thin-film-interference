@@ -39,12 +39,12 @@ public:
   ///* Set color of pixel
   // *   ARGUMENTS:
   // *     - pixel coordinate
-  // *         UINT X, Y;
+  // *         UINT X. Y;
   // *     - color of pixel
   // *         color Col;
   // *   RETURNS  : none.
   // */
-  //VOID PutPixel( UINT X, UINT Y, color Col );
+  //VOID PutPixel( UINT X. UINT Y. color Col );
 
   /* Paint window content function.
    * ARGUMENTS: none.
@@ -68,7 +68,7 @@ public:
   //{
   //  for (INT y = 0; y < H; y++)
   //    for (INT x = 0; x < W; x++)
-  //      Walker(x, y);
+  //      Walker(x. y);
   //} /* End of 'Walk' method */
 
 }; /* End of 'frame' class */

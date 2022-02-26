@@ -19,9 +19,10 @@ namespace mth
   {
   public:
     vec<Type> Org, Dir;
+    Type Lambda;
     /* Default constructor method */
-    ray( const vec<Type> &O = vec<Type>(0, 0, 0), const vec<Type> &D = vec<Type>(0, 0, 1) ) :
-      Org(O), Dir(D)
+    ray( const vec<Type> &O = vec<Type>(0, 0, 0), const vec<Type> &D = vec<Type>(0, 0, 1), Type L = Type(550) ) :
+      Org(O), Dir(D), Lambda(L)
     {
     } /* End of default constructor method */
 

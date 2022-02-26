@@ -21,7 +21,7 @@ material::material( color a, color d, color s, color tr, color rofl ) : Ka(a), K
 }
 
 /* Default constructor method */
-pbr_material::pbr_material(color a, DBL r, DBL m) : Albedo(a), Roughness(r), Metallic(m)
+pbr_material::pbr_material(color a, DBL r, DBL m, DBL t) : Albedo(a), Roughness(r), Metallic(m), Trans(t)
 {
 }
 

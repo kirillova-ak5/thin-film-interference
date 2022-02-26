@@ -43,7 +43,7 @@ class light
 public:
 
   color Color {1, 1, 1};
-  attenuation Att {1, 0, 0};
+  attenuation Att {1, 0.5, 0.1};
 
   /* Default contructor method */
   light( color Col = color(1, 1, 1) ) : Color(Col)

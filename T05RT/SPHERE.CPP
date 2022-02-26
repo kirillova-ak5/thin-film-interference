@@ -7,7 +7,7 @@
 #include "sphere.h"
 
 /* Default contructor method */
-sphere::sphere( DBL radius, const vec &center ) : shape(pbr_material(color(0.7, 0.3, 0.8), 0.2, 1.0)), C(center), R(radius), R2(R * R)
+sphere::sphere( DBL radius, const vec &center ) : shape(pbr_material(color(0.7, 0.0, 0.8), 0.2, 0.95)), C(center), R(radius), R2(R * R)
 {
   Color = color(0, 0, 243);
 }  /* End of default contructor method */
@@ -35,7 +35,7 @@ BOOL sphere::Intersect( const ray &Ray, intr *Intr )
     vec tmp = vec(Ray.Org + Ray.Dir * t0),
           n = (tmp - C) / R;
     BOOL e = ((Ray.Dir & n) > mth::Threshold)? TRUE : FALSE;
-    Intr->Set(this, t0, n, tmp, e);
+    Intr->Set(this, t0, n, tmp, !e);
     return TRUE;
   }
   t0 = ok + s;
@@ -44,7 +44,7 @@ BOOL sphere::Intersect( const ray &Ray, intr *Intr )
     vec tmp = vec(Ray.Org + Ray.Dir * t0),
           n = (tmp - C) / R;
     BOOL e = ((Ray.Dir & n) > mth::Threshold)? TRUE : FALSE;
-    Intr->Set(this, t0, n, tmp, e);
+    Intr->Set(this, t0, n, tmp, !e);
     return TRUE;
   }
   return FALSE;

@@ -85,7 +85,7 @@ namespace mth
      *   RETURNS  :
      *     - ray from point
      */
-    ray<Type> ToRay( Type X, Type Y, INT Ws, INT Hs ) 
+    ray<Type> ToRay( Type X, Type Y, INT Ws, INT Hs, Type L = Type(550) )
     { 
       
       DBL rx = 1, ry = 1;
@@ -96,7 +96,7 @@ namespace mth
       /*________DER'MO________*/
       vec<Type> a = Dir * ProjDist + Right * ((X - Ws / 2) / Ws * rx) +
                 Up * ((-Y + Hs / 2) / Hs * ry);
-      return ray<Type>(Loc + a, !a);
+      return ray<Type>(Loc + a, !a, L);
     } /* End of 'ToRay' method */
 
     ///* Update projection method

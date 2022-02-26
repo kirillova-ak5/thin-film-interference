@@ -9,6 +9,15 @@
 
 #include "def.h"
 
+const DBL glass_refrac[5][2] =
+{
+    {404.7, 1.6852},
+    {486.4, 1.6637},
+    {589.3, 1.6499},
+    {643.8, 1.6453},
+    {670.8, 1.6431}
+};
+
 /* Enviroment class */
 class enviroment
 {
@@ -18,6 +27,20 @@ public:
   /* Default constructor method */
   enviroment( VOID );
   enviroment( DBL r );
+  DBL Refrac(DBL lambda)
+  {
+      if (lambda <= glass_refrac[0][0])
+          return glass_refrac[0][1];
+      if (lambda >= glass_refrac[4][0])
+          return glass_refrac[4][1];
+      for (int i = 1; i < 5; i++)
+          if (lambda <= glass_refrac[i][0] && lambda >= glass_refrac[i - 1][0])
+          {
+              double t = (glass_refrac[i][0] - lambda) / (glass_refrac[i][0] - glass_refrac[i - 1][0]);
+              return glass_refrac[i][1] * (1.0 - t) + glass_refrac[i - 1][1] * t;
+          }
+      return 1;
+  }
 
 }; /* End of 'enviroment' class */
 
@@ -43,11 +66,12 @@ class pbr_material
 public:
     color Albedo;
     DBL Roughness, Metallic;
+    DBL Trans;
 
     enviroment Envi;       // Enviroment
 
     /* Default constructor method */
-    pbr_material(color a = color(0.8, 0.3, 0.9), DBL r = 0.9, DBL m = 0.0);
+    pbr_material(color a = color(0.8, 0.3, 0.9), DBL r = 0.9, DBL m = 0.0, DBL t = 0.0);
 
 }; /* End of 'pbr_material' class */
 

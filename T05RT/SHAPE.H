@@ -16,13 +16,14 @@ public:
 
   color Color;
   pbr_material Mtl;
+  bool IsDebugObject;
   /* Default contructor method */
-  shape( color Col = color(0, 255, 0) ) : Color(Col)
+  shape( color Col = color(0, 255, 0) ) : Color(Col), IsDebugObject(false)
   {
   } /* End of default contructor method */
 
   /* Default contructor method */
-  shape( pbr_material M ) : Mtl(M)
+  shape( pbr_material M ) : Mtl(M), IsDebugObject(false)
   {
   } /* End of default contructor method */
 
