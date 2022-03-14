@@ -21,6 +21,9 @@ struct texture
 
     VOID PutPixel(UINT X, UINT Y, color Col)
     {
+        Col.R = (Col.R <= 0.0) ? 1e-6 : Col.R;
+        Col.G = (Col.G <= 0.0) ? 1e-6 : Col.G;
+        Col.B = (Col.B <= 0.0) ? 1e-6 : Col.B;
         Texture[Y * W + X] = Col;
     }
 

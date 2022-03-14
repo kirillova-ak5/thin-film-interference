@@ -18,6 +18,19 @@ const DBL glass_refrac[5][2] =
     {670.8, 1.6431}
 };
 
+const DBL _glass_refrac[8][2] =
+{
+    {380.7, 1.8},
+    {404.7, 1.7},
+    {486.4, 1.65},
+    {589.3, 1.6},
+    {643.8, 1.55},
+    {670.8, 1.5},
+    {710.0, 1.4},
+    {740.0, 1.2}
+};
+
+
 /* Enviroment class */
 class enviroment
 {
@@ -27,13 +40,17 @@ public:
   /* Default constructor method */
   enviroment( VOID );
   enviroment( DBL r );
+  DBL Refrac2(DBL lambda)
+  {
+      return 0;
+  }
   DBL Refrac(DBL lambda)
   {
       if (lambda <= glass_refrac[0][0])
           return glass_refrac[0][1];
       if (lambda >= glass_refrac[4][0])
-          return glass_refrac[4][1];
-      for (int i = 1; i < 5; i++)
+          return glass_refrac[7][1];
+      for (int i = 1; i < 8; i++)
           if (lambda <= glass_refrac[i][0] && lambda >= glass_refrac[i - 1][0])
           {
               double t = (glass_refrac[i][0] - lambda) / (glass_refrac[i][0] - glass_refrac[i - 1][0]);

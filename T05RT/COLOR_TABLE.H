@@ -7,7 +7,7 @@
 namespace mth
 {
     const int COLOR_MATCH_LAMBDA_START = 380;
-    const int COLOR_MATCH_LAMBDA_END = 815;
+    const int COLOR_MATCH_LAMBDA_END = 750;// 815;
 
 
     enum color_matching_func
@@ -464,11 +464,34 @@ namespace mth
     double z(double lambda);
 
 
-    const double XYZ_TO_ADOBE_RGB[][3] = {
+    const double XYZ_TO_ADOBE_RGB[][3] = 
+    {
         {2.0413690, -0.5649464, -0.3446944},
         {-0.9692660, 1.8760108, 0.0415560},
         {0.0134474, -0.1183897, 1.0154096}
     };
+
+    const double ADOBE_RGB_TO_XYZ[][3] =
+    {
+        {0.5767309, 0.1855540, 0.1881852},
+        {0.2973769, 0.6273491, 0.0752741},
+        {0.0270343, 0.0706872, 0.9911085}
+    };
+
+    const double MODEL_RGB_WAVELENGTH2[] =//bgr actually
+    {
+        435.8,
+        546.1,
+        700.0
+    };
+
+    const double MODEL_RGB_WAVELENGTH[] =//bgr actually
+    {
+        487.5,
+        525.0,
+        572.5
+    };
+
 
     template <class type>
     color<type> color<type>::FromIntensities(double *intensities, double *lambdas, int numOfIntensities)
@@ -506,22 +529,66 @@ namespace mth
     };
 
     template <class type>
-    rgb_intensities IntensitiesFromRGB(color<type> c)
+    rgb_intensities IntensitiesFromRGB2(color<type> c)
     {
         rgb_intensities i;
-        i.lambdas[0] = 435.8;
-        i.lambdas[1] = 546.1;
-        i.lambdas[2] = 700.0;
+        i.lambdas[0] = MODEL_RGB_WAVELENGTH[0];
+        i.lambdas[1] = MODEL_RGB_WAVELENGTH[1];
+        i.lambdas[2] = MODEL_RGB_WAVELENGTH[2];
         i.intensities[0] = c.B;
         i.intensities[1] = c.G;
         i.intensities[2] = c.R;
         return i;
     }
 
+
+    double __determ3x3(double a11, double a12, double a13,
+                       double a21, double a22, double a23,
+                       double a31, double a32, double a33);
+
     template <class type>
-    double LambdaIntencityFromRGB(color<type> c, double l)
+    rgb_intensities IntensitiesFromRGB(color<type> c)
     {
-        rgb_intensities i = IntensitiesFromRGB(c);
+        rgb_intensities i;
+        i.lambdas[0] = MODEL_RGB_WAVELENGTH[0];
+        i.lambdas[1] = MODEL_RGB_WAVELENGTH[1];
+        i.lambdas[2] = MODEL_RGB_WAVELENGTH[2];
+        double X = ADOBE_RGB_TO_XYZ[0][0] * c.R + ADOBE_RGB_TO_XYZ[0][1] * c.G + ADOBE_RGB_TO_XYZ[0][2] * c.B;
+        double Y = ADOBE_RGB_TO_XYZ[1][0] * c.R + ADOBE_RGB_TO_XYZ[1][1] * c.G + ADOBE_RGB_TO_XYZ[1][2] * c.B;
+        double Z = ADOBE_RGB_TO_XYZ[2][0] * c.R + ADOBE_RGB_TO_XYZ[2][1] * c.G + ADOBE_RGB_TO_XYZ[2][2] * c.B;
+        double dlB = MODEL_RGB_WAVELENGTH[0] - COLOR_MATCH_LAMBDA_START + (MODEL_RGB_WAVELENGTH[1] - MODEL_RGB_WAVELENGTH[0]) / 2.0;
+        double dlG = (MODEL_RGB_WAVELENGTH[1] - MODEL_RGB_WAVELENGTH[0]) / 2.0 + (MODEL_RGB_WAVELENGTH[2] - MODEL_RGB_WAVELENGTH[1]) / 2.0;
+        double dlR = (MODEL_RGB_WAVELENGTH[2] - MODEL_RGB_WAVELENGTH[1]) / 2.0 + (COLOR_MATCH_LAMBDA_END - MODEL_RGB_WAVELENGTH[2]);
+        double xb = x(MODEL_RGB_WAVELENGTH[0]), xg = x(MODEL_RGB_WAVELENGTH[1]), xr = x(MODEL_RGB_WAVELENGTH[2]);
+        double yb = y(MODEL_RGB_WAVELENGTH[0]), yg = y(MODEL_RGB_WAVELENGTH[1]), yr = y(MODEL_RGB_WAVELENGTH[2]);
+        double zb = z(MODEL_RGB_WAVELENGTH[0]), zg = z(MODEL_RGB_WAVELENGTH[1]), zr = z(MODEL_RGB_WAVELENGTH[2]);
+
+        // kramer
+        double d = __determ3x3(xb * dlB, xg * dlG, xr * dlR,
+                               yb * dlB, yg * dlG, yr * dlR,
+                               zb * dlB, zg * dlG, zr * dlR);
+
+        i.intensities[0] = __determ3x3(X, xg * dlG, xr * dlR,
+                                       Y, yg * dlG, yr * dlR,
+                                       Z, zg * dlG, zr * dlR) / d;
+        i.intensities[1] = __determ3x3(xb * dlB, X, xr * dlR,
+                                       yb * dlB, Y, yr * dlR,
+                                       zb * dlB, Z, zr * dlR) / d;
+
+        i.intensities[2] = __determ3x3(xb * dlB, xg * dlG, X,
+                                       yb * dlB, yg * dlG, Y,
+                                       zb * dlB, zg * dlG, Z) / d;
+
+        i.intensities[0] = i.intensities[0] < 0 ? 0 : i.intensities[0];
+        i.intensities[1] = i.intensities[1] < 0 ? 0 : i.intensities[1];
+        i.intensities[2] = i.intensities[2] < 0 ? 0 : i.intensities[2];
+        return i;
+    }
+
+    template <class type>
+    double LambdaIntencityFromRGB2(color<type> c, double l)
+    {
+        rgb_intensities i = IntensitiesFromRGB2(c);
         if (l < i.lambdas[0])
             return i.intensities[0];
         if (l < i.lambdas[1])
@@ -537,6 +604,35 @@ namespace mth
         else
             return i.intensities[2];
     }
+
+    template <class type>
+    double LambdaIntencityFromRGB(color<type> c, double l)
+    {
+        rgb_intensities i = IntensitiesFromRGB(c);
+        if (l < i.lambdas[0])
+        {
+            double d = (l - COLOR_MATCH_LAMBDA_START) / (i.lambdas[0] - COLOR_MATCH_LAMBDA_START);
+            return d * i.intensities[0];
+        }
+        if (l < i.lambdas[1])
+        {
+            double d = (l - i.lambdas[0]) / (i.lambdas[1] - i.lambdas[0]);
+            return (1.0 - d) * i.intensities[0] + d * i.intensities[1];
+        }
+        if (l < i.lambdas[2])
+        {
+            double d = (l - i.lambdas[1]) / (i.lambdas[2] - i.lambdas[1]);
+            return (1.0 - d) * i.intensities[1] + d * i.intensities[2];
+        }
+        else
+        {
+            double d = (l - i.lambdas[2]) / (COLOR_MATCH_LAMBDA_END - i.lambdas[2]);
+            return (1.0 - d) * i.intensities[2];
+        }
+
+    }
+
+
 
     template <class type>
     double Luminance(color<type> col)

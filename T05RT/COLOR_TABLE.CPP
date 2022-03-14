@@ -36,3 +36,13 @@ double mth::z(double lambda)
 
     return (1.0 - frac) * xyz[l - COLOR_MATCH_LAMBDA_START][COLOR_MATCH_Z] + frac * xyz[l - COLOR_MATCH_LAMBDA_START + 1][COLOR_MATCH_Z];
 }
+
+
+double mth::__determ3x3(double a11, double a12, double a13,
+                        double a21, double a22, double a23,
+                        double a31, double a32, double a33)
+{
+    return a11 * a22 * a33 - a11 * a23 * a32 - a12 * a21 * a33 +
+        a12 * a23 * a31 + a13 * a21 * a32 - a13 * a22 * a31;
+}
+

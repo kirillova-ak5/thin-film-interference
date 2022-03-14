@@ -68,6 +68,9 @@
     <ClCompile Include="COLOR_TABLE.CPP">
       <Filter>Math</Filter>
     </ClCompile>
+    <ClCompile Include="BUBBLE.CPP">
+      <Filter>Shapes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IMAGE.H">
@@ -146,6 +149,9 @@
     </ClInclude>
     <ClInclude Include="TEXTURE.H">
       <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="BUBBLE.h">
+      <Filter>Shapes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

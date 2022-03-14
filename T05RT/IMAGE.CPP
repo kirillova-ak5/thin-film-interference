@@ -47,7 +47,7 @@ VOID image::PutPixel( UINT X, UINT Y, color Col )
 {
   if (X >= W || Y >= H)
         return;
-  UCHAR R = Col.R * 255.0, G = Col.G * 255.0, B = Col.B * 255.0;
+  UCHAR R = (Col.R > 1.0 - mth::Threshold ? 1.0 : Col.R) * 255.0, G = (Col.G > 1.0 - mth::Threshold ? 1.0 : Col.G) * 255.0, B = (Col.B > 1.0 - mth::Threshold ? 1.0 : Col.B) * 255.0;
   DWORD C = R;
   C = (C << 8) + G;
   C = (C << 8) + B;

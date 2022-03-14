@@ -18,7 +18,7 @@ frame::frame( VOID ) : win(), Image(win::W, win::H), Scene()
  */
 VOID frame::Init( VOID )
 {
-  Image = image(W, H);
+  //Image = image(W, H);
   F = std::future<VOID>(std::async(std::launch::async, [&]() {Scene.RT(Image); }));
 
 } /* End of 'Init' function */
@@ -45,7 +45,7 @@ VOID frame::Resize( VOID )
   Scene.Camera.Resize(win::W, win::H);
   Image = image(win::W, win::H);
 
-  Scene.RT(Image);
+  //Scene.RT(Image);
 //  Image.Draw(hDC);
 
 }
@@ -57,7 +57,7 @@ VOID frame::Resize( VOID )
  */
 VOID frame::Draw( HDC hDC )
 {
-  Scene.RT(Image);
+  // Scene.RT(Image);
   //for (INT i = 0; i < W / 2; i++)
   //  for (INT j = 0; j < H / 2; j++)
   //    Image.PutPixel(i. j. color(0. 230. 173. 1));

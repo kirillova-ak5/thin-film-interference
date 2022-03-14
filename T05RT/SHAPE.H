@@ -17,13 +17,15 @@ public:
   color Color;
   pbr_material Mtl;
   bool IsDebugObject;
+  bool IsThinFilm;
+
   /* Default contructor method */
-  shape( color Col = color(0, 255, 0) ) : Color(Col), IsDebugObject(false)
+  shape( color Col = color(0, 255, 0) ) : Color(Col), IsDebugObject(false), IsThinFilm(false)
   {
   } /* End of default contructor method */
 
   /* Default contructor method */
-  shape( pbr_material M ) : Mtl(M), IsDebugObject(false)
+  shape( pbr_material M ) : Mtl(M), IsDebugObject(false), IsThinFilm(false)
   {
   } /* End of default contructor method */
 
@@ -40,6 +42,11 @@ public:
   virtual BOOL Intersect( const ray &Ray, intr *Intr )
   {
     return FALSE;
+  }
+
+  virtual DBL GetThick(VOID)
+  {
+      return 0.0;
   }
 
 }; /* End of 'shape' class */

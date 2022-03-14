@@ -14,6 +14,7 @@
 #include "prim.h"
 #include "obj.h"
 #include "grebaniy_tor.h"
+#include "BUBBLE.h"
 
 #endif // __SHAPE_LIST_H_
 

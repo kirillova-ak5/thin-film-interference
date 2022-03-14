@@ -7,7 +7,7 @@
 #include "plane.h"
 
 /* Contructor method */
-plane::plane( const vec &n, DBL d ) : shape(pbr_material(color(0.01, 0.3, 0.1), 0.5, 0.0)), N(!n), D(d)
+plane::plane( const vec &n, DBL d ) : shape(pbr_material(color(0.01, 0.01, 0.01), 0.5, 0.0)), N(!n), D(d)
 {
 }  /* End of contructor method */
 

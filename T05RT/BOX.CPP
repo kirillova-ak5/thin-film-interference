@@ -8,9 +8,51 @@
 
 
 /* Contructor method */
-box::box( const vec &p1, const vec &p2 ) : shape(pbr_material(color(0.0, 0.01, 0.5), 0.8, 0.1)), P1(p1), P2(p2)
+box::box( const vec &p1, const vec &p2 ) : shape(pbr_material(color(0.0, 0.8, 0.7), 0.8, 0.1))
 {
+  P1 = vec(min(p1.GetX(), p2.GetX()), min(p1.GetY(), p2.GetY()), min(p1.GetZ(), p2.GetZ()));
+  P2 = vec(max(p1.GetX(), p2.GetX()), max(p1.GetY(), p2.GetY()), max(p1.GetZ(), p2.GetZ()));
 }  /* End of contructor method */
+
+
+vec CalcNormal(const vec& P1, const vec& P2, const vec& Pos)
+{
+  DBL X1 = (P1.GetX() - P2.GetX()) / fabs(P1.GetX() - P2.GetX()),
+    X2 = (P2.GetX() - P1.GetX()) / fabs(P2.GetX() - P1.GetX()),
+    Y1 = (P1.GetY() - P2.GetY()) / fabs(P1.GetY() - P2.GetY()),
+    Y2 = (P2.GetY() - P1.GetY()) / fabs(P2.GetY() - P1.GetY()),
+    Z1 = (P1.GetZ() - P2.GetZ()) / fabs(P1.GetZ() - P2.GetZ()),
+    Z2 = (P2.GetZ() - P1.GetZ()) / fabs(P2.GetZ() - P1.GetZ());
+
+  DBL PosX = Pos.GetX(), PosY = Pos.GetY(), PosZ = Pos.GetZ();
+
+  if (fabs(PosX - P1.GetX()) < mth::Threshold)
+  {
+    return vec(X1, 0, 0);
+  }
+  if (fabs(PosX - P2.GetX()) < mth::Threshold)
+  {
+    return vec(X2, 0, 0);
+  }
+
+  if (fabs(PosY - P1.GetY()) < mth::Threshold)
+  {
+    return vec(0, Y1, 0);
+  }
+  if (fabs(PosY - P2.GetY()) < mth::Threshold)
+  {
+    return vec(0, Y2, 0);
+  }
+  if (fabs(PosZ - P1.GetZ()) < mth::Threshold)
+  {
+    return vec(0, 0, Z1);
+  }
+  if (fabs(PosZ - P2.GetZ()) < mth::Threshold)
+  {
+    return vec(0, 0, Z2);
+  }
+  return vec(0,0,0);
+}
 
 /* Intersect method
  *   ARGUMENTS:
@@ -29,91 +71,69 @@ BOOL box::Intersect( const ray &Ray, intr *Intr )
   INT A = 0;
   bool IsInside = false;
   vec norm;
+  BOOL f = FALSE;
 
   /* X axis */
-  if (dx == 0)
-  {
-    if (ox < x1 || ox > x2)
-      return FALSE;
-  }
-  else
+  if (!((dx == 0) && (ox < x1 || ox > x2)))
   {
     t0 = (x1 - ox) / dx;
     t1 = (x2 - ox) / dx;
-    if (t0 > t1 && t1 > 0)
+    if (t0 > t1)
       mth::Swap(t0, t1);
     if (t0 > tn)
-    {
-      IsInside = t0 * t1 < 0;
       tn = t0;
-      if ((x1 - ox) / dx == tn && x1 < ox || (x2 - ox) / dx == tn && x2 < ox)
-        norm = vec(1.0, 0.0, 0.0);
-      else
-        norm  = vec(-1.0, 0.0, 0.0);
-
-    }
     if (t1 < tf)
       tf = t1;
-    if (tn > tf || tf < mth::Threshold)
-      return FALSE;
+    if (tn > tf)
+      return false;
+    if (tf < mth::Threshold)
+      return false;
+    f = true;
   }
 
   /* Y axis */
-  if (dy == 0)
-  {
-    if (oy < y1 || oy > y2)
-      return FALSE;
-  }
-  else
+  if (!((dy == 0) && (oy < y1 || oy > y2)))
   {
     t0 = (y1 - oy) / dy;
     t1 = (y2 - oy) / dy;
-    if (t0 > t1 && t1 > 0)
+    if (t0 > t1)
       mth::Swap(t0, t1);
     if (t0 > tn)
-    {
-      IsInside = t0 * t1 < 0;
       tn = t0;
-      A = 1;
-      if ((y1 - oy) / dy == tn && y1 < oy || (y2 - oy) / dy == tn && y2 < oy)
-        norm = vec(0.0, 1.0, 0.0);
-      else
-        norm  = vec(0.0, -1.0, 0.0);
-
-    }
     if (t1 < tf)
       tf = t1;
-    if (tn > tf || tf < mth::Threshold)
-      return FALSE;
+    if (tn > tf)
+      return false;
+    if (tf < mth::Threshold)
+      return false;
+    f = true;
   }
 
   /* Z axis */
-  if (dz == 0)
-  {
-    if (oz < z1 || oz > z2)
-      return FALSE;
-  }
-  else
+  if (!((dz == 0) && (oz < z1 || oz > z2)))
   {
     t0 = (z1 - oz) / dz;
     t1 = (z2 - oz) / dz;
-    if (t0 > t1 && t1 > 0)
+    if (t0 > t1)
       mth::Swap(t0, t1);
     if (t0 > tn)
-    {
-      IsInside = t0 * t1 < 0;
       tn = t0;
-      A = 2;
-      if ((z1 - oz) / dz == tn && z1 < oz || (z2 - oz) / dz == tn && z2 < oz)
-        norm = vec(0.0, 0.0, 1.0);
-      else
-        norm  = vec(0.0, 0.0, -1.0);
-    }
     if (t1 < tf)
       tf = t1;
-    if (tn > tf || tf < mth::Threshold)
-      return FALSE;
+    if (tn > tf)
+      return false;
+    if (tf < mth::Threshold)
+      return false;
+    f = true;
   }
+
+  if (tn > mth::Threshold)
+    IsInside = FALSE;
+  else
+    IsInside = TRUE;
+  
+  norm = CalcNormal(P1, P2, Ray.Org + Ray.Dir * tn);
+
   Intr->Set(this, tn, norm, Ray.Org + Ray.Dir * tn, !IsInside);
   return TRUE;
 } /* End of 'Intersect' method */
