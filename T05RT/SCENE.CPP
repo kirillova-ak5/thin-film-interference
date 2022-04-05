@@ -13,7 +13,7 @@
 scene::scene(VOID) : BackGround(0.2, 0.6, 0.4), MaxRecource(8), CurrentRecource(0), DebugColor(0.69, 0.69, 0.30)
 {
     //Camera.SetView(vec(5, 2, 8), vec(0));
-    Camera.SetView(vec(5, 3, 8), vec(0));
+    Camera.SetView(vec(5, 3, 8), vec(3.0, 2.5, 4.3));
     Objects.push_back(new sphere(0.2, vec(5, 3, 8)));
     Objects.back()->Color = color(1, 0, 0);
     Objects.back()->IsDebugObject = true;
@@ -42,7 +42,7 @@ scene::scene(VOID) : BackGround(0.2, 0.6, 0.4), MaxRecource(8), CurrentRecource(
     Objects.push_back(new sphere(0.7, vec(2, 2, 0)));
     Objects.push_back(new sphere(1.3, vec(0, 0.4, 1.4)));
     //Objects.push_back(new sphere(0.5, vec(3.0, 2.5, 4.3)));
-    Objects.push_back(new bubble(0.5, vec(3.0, 2.5, 4.3), 0.025));
+    Objects.push_back(new bubble(0.5, vec(3.0, 2.5, 4.3), 0.014));
     Objects.back()->Mtl.Trans = 0.99;
     Objects.back()->Mtl.Envi.Refr = 2.6;
     Objects.back()->Mtl.Metallic = 0.03;
@@ -99,14 +99,14 @@ VOID scene::RT(image& img)
             for (int i = 0; i < 2; i++)
                 for (int j = 0; j < 2; j++)
                 {
-                    DBL numSamples = 30;
-                    DBL intensities[30] = { 0 };
-                    DBL lambdas[30] = { 0 };
+                    DBL numSamples = 10;
+                    DBL intensities[10] = { 0 };
+                    DBL lambdas[10] = { 0 };
                     for (int k = 0; k < numSamples; k++)
                     {
                         CurrentRecource = 0;
-                        lambdas[k] = 380.0 + (730.0 - 380.0) / numSamples * k;
-                        //lambdas[k] = 400;
+                        lambdas[k] = 380.0 + (750.0 - 380.0) / numSamples * k;
+                        //lambdas[k] = 700;
                         intensities[k] = Trace(Camera.ToRay(x + 0.25 * j + 0.125, y + 0.25 * i + 0.125, tex.W, tex.H, lambdas[k]), enviroment(0.98), 1);
                     }
                     col += mth::color<DBL>::FromIntensities(intensities, lambdas, numSamples)/* * 0.1*/;
@@ -222,7 +222,38 @@ double scene::Shade(const intr& In, const vec& Vec, const enviroment& Env, DBL W
         DBL GeomSelfshadingGGX = max(!ToLight & In.N, 0.0) / (max(!ToLight & In.N, 0.0) * (1 - K) + K);
         DBL GeomFunc = GeomObstructionGGX * GeomSelfshadingGGX;
 
+        
+        DBL interfer = 0;
+            if (In.Object->IsThinFilm && In.IsEnter)
+            {
+                DBL eta = In.IsEnter ? In.Object->Mtl.Envi.Refrac(Lambda) / Env.Refr : 1.0 / Env.Refr;
+                vec vPar = In.N * (-Halfway & In.N);
+                vec vPer = (-Halfway) - vPar;
+                vec T = vPar + vPer * eta;
+                T.Normalize();
+
+                DBL lambda_cm = Lambda * 1e-8;
+                DBL thick_cm = In.Object->GetThick() * 1e-4;
+                ///          DBL reflecIntens = mth::LambdaIntencityFromRGB(/*(FresnelSchlick)*/color(1) * Trace(ray(In.P + Reflected * 10 * mth::Threshold, Reflected, Lambda), In.Object->Mtl.Envi, /*Weight*/1) * /*Weight*/1, Lambda)/* * 0.05*/;
+                DBL reflecIntens = Trace(ray(In.P + Reflected * 10 * mth::Threshold, Reflected, Lambda), In.Object->Mtl.Envi, /*Weight*/1);
+                DBL k = 2.0 * mth::PI / lambda_cm;
+                DBL cosB = (!T) & (-In.N);
+                /*if (cosB <= 0)
+                    return (Lambda < 450) ? 1.0 : 0.0;*/
+                DBL delta = /*abs*/(2.0 * eta * thick_cm * cosB - lambda_cm / 2.0);
+                DBL si2 = 1.0 - pow((!Reflected & In.N), 2);
+                DBL delta2 = 2.0 * thick_cm * sqrt(eta * eta - si2) - lambda_cm / 2.0;
+                DBL interferIntens = mth::LambdaIntencityFromRGB(FresnelSchlick * (color(1.0) - FresnelSchlick) * (color(1.0) - FresnelSchlick) * reflecIntens, Lambda);
+                //intens += (reflecIntens + interferIntens + 2.0 * sqrt(reflecIntens * interferIntens) * 10 * cos(k * delta2));
+                //return 10 * reflecIntens;
+                DBL tmp = /*2.0 * reflecIntens + 20.0 */ reflecIntens * max(-cos(k * delta), 0.0);
+                interfer = max(cos(k * delta), 0.0);
+                //         return tmp > 0 ? tmp : 0.000001;
+            }
+        
         color Specular = FresnelSchlick * (DistributionGGX * GeomFunc / (4.0 * (max(!V & In.N, 0.0) + mth::Threshold))); // /* / (4.0 * max(!V & In.N, 0.0) * max(!ToLight & In.N, 0.0))*/);
+        
+        
         color Kd = color(1.0) - FresnelSchlick;
         Kd = Kd * (1.0 - In.Object->Mtl.Trans);
         color Diffuse = In.Object->Mtl.Albedo * (1.0 - In.Object->Mtl.Metallic) * Kd * (1.0 / mth::PI);
@@ -231,7 +262,7 @@ double scene::Shade(const intr& In, const vec& Vec, const enviroment& Env, DBL W
         auto t = (Diffuse + Specular) * Attenuated * max(!ToLight & In.N, 0.0);
         //Col += Diffuse;
         //Col += (Diffuse + Specular) * Attenuated * max(!ToLight & In.N, 0.0);
-        intens += mth::LambdaIntencityFromRGB(t, Lambda)/* * 0.1*/;
+        intens += mth::LambdaIntencityFromRGB(t, Lambda) * (pow(1.0 + interfer, 5))/* * 0.1*/;
         //intens += mth::LambdaIntencityFromRGB(Diffuse * Attenuated * max(!ToLight & In.N, 0.0), Lambda);
 
     }
@@ -270,34 +301,13 @@ double scene::Shade(const intr& In, const vec& Vec, const enviroment& Env, DBL W
 
             }
             //Col += (color(1.0) - FresnelSchlick) * Trace(ray(In.P + T * 10 * mth::Threshold, T), In.Object->Mtl.Envi, coef) * coef * e; /* DER'MO */
-            DBL refracIntens = mth::LambdaIntencityFromRGB((color(1.0) - FresnelSchlick) * Trace(ray(In.P + T * 10 * mth::Threshold, T, Lambda), In.Object->Mtl.Envi, coef) * coef * e, Lambda)/* * 0.05*/;
-            //intens += refracIntens;
+            //DBL refracIntens = mth::LambdaIntencityFromRGB((color(1.0) - FresnelSchlick) * Trace(ray(In.P + T * 10 * mth::Threshold, T, Lambda), In.Object->Mtl.Envi, coef) * coef * e, Lambda)/* * 0.05*/;
+            DBL refracIntens = (1.0 - mth::LambdaIntencityFromRGB((FresnelSchlick), Lambda)) * Trace(ray(In.P + T * 10 * mth::Threshold, T, Lambda), In.Object->Mtl.Envi, coef) * coef * e/* * 0.05*/;
+
+            intens += refracIntens;
+            //return refracIntens;
             //return Trace(ray(In.P + T * 10 * mth::Threshold, T, Lambda), In.Object->Mtl.Envi, coef) * coef;
             /* Interfere */
-            if (In.Object->IsThinFilm && In.IsEnter)
-            {
-                DBL lambda_cm = Lambda * 1e-7;
-                DBL thick_cm = In.Object->GetThick() * 1e-4;
-                ///          DBL reflecIntens = mth::LambdaIntencityFromRGB(/*(FresnelSchlick)*/color(1) * Trace(ray(In.P + Reflected * 10 * mth::Threshold, Reflected, Lambda), In.Object->Mtl.Envi, /*Weight*/1) * /*Weight*/1, Lambda)/* * 0.05*/;
-                DBL reflecIntens = Trace(ray(In.P + Reflected * 10 * mth::Threshold, Reflected, Lambda), In.Object->Mtl.Envi, /*Weight*/1);
-                DBL k = 2.0 * mth::PI / lambda_cm;
-                DBL cosB = (!T) & (-In.N);
-                /*if (cosB <= 0)
-                    return (Lambda < 450) ? 1.0 : 0.0;*/
-                DBL delta = 2.0 * eta * thick_cm * cosB - lambda_cm / 2.0;
-                DBL si2 = 1.0 - pow((!Reflected & In.N), 2);
-                DBL delta2 = 2.0 * thick_cm * sqrt(eta * eta - si2) - lambda_cm / 2.0;
-                DBL interferIntens = mth::LambdaIntencityFromRGB(FresnelSchlick * (color(1.0) - FresnelSchlick) * (color(1.0) - FresnelSchlick) * reflecIntens, Lambda);
-                intens += (reflecIntens + interferIntens + 2.0 * sqrt(reflecIntens * interferIntens) * 10 * cos(k * delta2));
-                //return 10 * reflecIntens;
-                DBL tmp = 2.0 * reflecIntens + 20.0 * reflecIntens * max(cos(k * delta2), 0.0);
-                return tmp;
-                //         return tmp > 0 ? tmp : 0.000001;
-            }
-            else
-            {
-                ;/// intens += refracIntens;
-            }
         }
     }
 

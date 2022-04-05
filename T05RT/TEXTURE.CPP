@@ -20,7 +20,7 @@ VOID texture::Tonemap(VOID)
     sum /= (DBL)W * H;
     meanLum = exp(sum) - 1.0;
     key = 1.03 - (2.0 / (2.0 + log10(meanLum + 1.0)));
-    expo = key / meanLum;
+    expo = key / meanLum * 3.0;
 
     for (INT y = 0; y < H; y++)
         for (INT x = 0; x < W; x++)

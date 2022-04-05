@@ -487,9 +487,9 @@ namespace mth
 
     const double MODEL_RGB_WAVELENGTH[] =//bgr actually
     {
-        487.5,
-        525.0,
-        572.5
+        435.0,
+        532.0,
+        630.0
     };
 
 
