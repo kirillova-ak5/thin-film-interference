@@ -63,169 +63,73 @@ namespace ragl
     }; /* End of 'resource_manager' class */
 
   /* Shader class */
-  class shader
-  {
-  private:
-    /* Save text to log file function.
-     * ARGUMENTS:
-     *   - text 1 to save:
-     *       const std::string &Stage;
-     *   - text 2 to save:
-     *       const std::string &Text;
-     * RETURNS: None.
-     */
-    VOID Log( const std::string &Stage, const std::string &Text )
+    class shader
     {
-      std::ofstream("SV{SHAD}30.LOG", std::ios_base::app) << Stage << ":" << Text << "\n";
-    } /* End of 'Log' function */
-
-    /* Text file load to memory function.
-     * ARGUMENTS:
-     *   - file name:
-     *       const std::string &FileName;
-     * RETURNS:
-     *   (std::string) load text.
-     */
-    std::string LoadTextFile( const std::string &FileName )
-    {
-      return std::string((std::istreambuf_iterator<char>(std::ifstream(FileName))),
-                         std::istreambuf_iterator<char>());
-    } /* End of 'LoadTextFile' function */
-
-  public:
-    /* Shader name */
-    std::string Name;
-
-    /* Shader program Id */
-    UINT ProgId;
-
-    /* Class default constructor */
-    shader( VOID )
-    {
-    } /* End of 'shader' function */
-
-    /* Class constructor.
-     * ARGUMENTS:
-     *   - texture file name prefix:
-     *       const std::string &FileNamePrefix;
-     */
-    shader( const std::string &FileNamePrefix ) : Name(FileNamePrefix)
-    {
-      struct
+    private:
+      /* Save text to log file function.
+       * ARGUMENTS:
+       *   - text 1 to save:
+       *       const std::string &Stage;
+       *   - text 2 to save:
+       *       const std::string &Text;
+       * RETURNS: None.
+       */
+      VOID Log(const std::string& Stage, const std::string& Text)
       {
-        UINT Type;        // Shader type
-        std::string Suff; // Shader file suffix
-        UINT Id;          // Shader Id
-      } shdr[] =
+        std::ofstream("SV{SHAD}30.LOG", std::ios_base::app) << Stage << ":" << Text << "\n";
+      } /* End of 'Log' function */
+
+      /* Text file load to memory function.
+       * ARGUMENTS:
+       *   - file name:
+       *       const std::string &FileName;
+       * RETURNS:
+       *   (std::string) load text.
+       */
+      std::string LoadTextFile(const std::string& FileName)
       {
-        {GL_VERTEX_SHADER, "VERT", 0},
-        {GL_FRAGMENT_SHADER, "FRAG", 0},
-      };
-      INT res;
-      CHAR buf[500];
-      BOOL isok = TRUE;
+        return std::string((std::istreambuf_iterator<char>(std::ifstream(FileName))),
+          std::istreambuf_iterator<char>());
+      } /* End of 'LoadTextFile' function */
 
-      /* Load shaders */
-      for (auto &s : shdr)
+      HRESULT CompileShaderFromFile(const CHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
+
+      /* Shader name */
+      const std::string PostfixVert = "_vsh.hlsl";
+      const std::string PostfixPix = "_psh.hlsl";
+
+      ID3D11VertexShader* VertexShader = nullptr;
+      ID3D11PixelShader* PixelShader = nullptr;
+      ID3D11InputLayout* InputLayout = nullptr;
+
+    public:
+      std::string Name;
+      /* Class default constructor */
+      shader(VOID)
       {
-        /* Create shader */
-        if ((s.Id = glCreateShader(s.Type)) == 0)
-        {
-          Log(s.Suff, "Error create shader");
-          isok = FALSE;
-          break;
-        }
-        /* Load text file */
-        std::string txt = LoadTextFile(FileNamePrefix + "." + s.Suff);
-        if (txt.length() == 0)
-        {
-          Log(s.Suff, "No file");
-          isok = FALSE;
-          break;
-        }
+      } /* End of 'shader' function */
 
-        /* Attach text to shader  */
-        const CHAR *Src[] = {txt.c_str()};
-        glShaderSource(s.Id, 1, Src, NULL);
+      /* Class constructor.
+       * ARGUMENTS:
+       *   - texture file name prefix:
+       *       const std::string &FileNamePrefix;
+       */
+      shader(const std::string& FileNamePrefix);
 
-        /* Compile shader */
-        glCompileShader(s.Id);
-        glGetShaderiv(s.Id, GL_COMPILE_STATUS, &res);
-        if (res != 1)
-        {
-          glGetShaderInfoLog(s.Id, sizeof(buf), &res, buf);
-          Log(s.Suff, buf);
-          isok = FALSE;
-          break;
-        }
-      }
-
-      if (isok)
-        if ((ProgId = glCreateProgram()) == 0)
-          isok = FALSE;
-        else
-        {
-          /* Attach shaders to program */
-          for (auto s : shdr)
-            glAttachShader(ProgId, s.Id);
-          /* Link program */
-          glLinkProgram(ProgId);
-          glGetProgramiv(ProgId, GL_LINK_STATUS, &res);
-          if (res != 1)
-          {
-            glGetProgramInfoLog(ProgId, sizeof(buf), &res, buf);
-            Log("LINK", buf);
-            isok = FALSE;
-          }
-        }
-
-      if (!isok)
+      /* Class destructor */
+      ~shader(VOID)
       {
-        for (auto s : shdr)
-        {
-          if (s.Id != 0)
-            if (ProgId != 0)
-              glDetachShader(ProgId, s.Id);
-            glDeleteShader(s.Id);
-        }
-        if (ProgId != 0)
-          glDeleteProgram(ProgId);
-        ProgId = 0;
-      }
-    } /* End of 'shader' function */
+        if (InputLayout) InputLayout->Release();
+        if (VertexShader) VertexShader->Release();
+        if (PixelShader) PixelShader->Release();
+      } /* End of 'ragl::shader::~shader' function */
 
-    /* Class destructor */
-    ~shader( VOID )
-    {
-      INT n, i;
-      UINT shds[5];
-
-      if (ProgId == 0)
-        return;
-
-      /* Obtain program shaders count */
-      glGetAttachedShaders(ProgId, 5, &n, shds);
-
-      for (i = 0; i < n; i++)
-      {
-        glDetachShader(ProgId, shds[i]);
-        glDeleteShader(shds[i]);
-      }
-      glDeleteProgram(ProgId);
-    } /* End of 'ragl::shader::~shader' function */
-
-    /* Apply shader function.
-     * ARGUMENTS: None.
-     * RETURNS:
-     *   (UINT) shader program Id;
-     */
-    UINT Apply( VOID )
-    {
-      /* Enable shader */
-      glUseProgram(ProgId);
-
-      return ProgId;
-    } /* End of 'Apply' function */
+      /* Apply shader function.
+       * ARGUMENTS: None.
+       * RETURNS:
+       *   (UINT) shader program Id;
+       */
+      VOID Apply(VOID);
   }; /* End of 'shader' class */
 
   /* Texture class */
@@ -238,8 +142,9 @@ namespace ragl
     /* Image size */
     INT W, H;
 
-    /* OpenGL texture Id */
-    UINT TexNo;
+    ID3D11ShaderResourceView* TextureSRV = nullptr;
+    ID3D11SamplerState* Sampler= nullptr;
+    ID3D11Texture2D* Texture = nullptr;
 
     /* Class default constructor */
     texture( VOID )
@@ -266,32 +171,21 @@ namespace ragl
      *   - image pixel data:
      *       BYTE *Pixels;
      */
-    texture( const std::string &NewName, INT NewW, INT NewH, INT BytesPerPixel, BYTE *Pixels ) :
-      Name(NewName), W(NewW), H(NewH)
-    {
-      glGenTextures(1, &TexNo);
-      glBindTexture(GL_TEXTURE_2D, TexNo);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      gluBuild2DMipmaps(GL_TEXTURE_2D, BytesPerPixel, W, H,
-        BytesPerPixel == 4 ? GL_BGRA_EXT : BytesPerPixel == 3 ? GL_BGR_EXT : GL_LUMINANCE,
-        GL_UNSIGNED_BYTE, Pixels);
-    } /* End of 'texture' function */
+    texture(const std::string& NewName, INT NewW, INT NewH, INT BytesPerPixel, BYTE* Pixels);
 
     /* Class destructor */
     ~texture( VOID )
     {
-      glDeleteTextures(1, &TexNo);
+      if (Sampler) Sampler->Release();
+      if (TextureSRV) TextureSRV->Release();
+      if (Texture) Texture->Release();
     } /* End of 'texture' function */
 
     /* Apply texture function.
      * ARGUMENTS: None.
      * RETURNS: None.
      */
-    VOID Apply( VOID )
-    {
-      glBindTexture(GL_TEXTURE_2D, TexNo);
-    } /* End of 'Apply' function */
+    VOID Apply( UINT slot );
   }; /* End of 'texture' class */
 
   /* Material class */
@@ -301,14 +195,23 @@ namespace ragl
     /* Material name */
     std::string Name;
 
-    /* Illumination coefficients (anbient, diffuse, specular) */
-    color3 Ka, Kd, Ks;
-    /* Phong coefficient and transparency value */
-    FLT Ph, Trans;
+    struct material_constants
+    {
+      /* Illumination coefficients (anbient, diffuse, specular) */
+      color3 Ka;
+      FLT Ph;
+      color3 Kd;
+      FLT Trans;
+      color3 Ks;
+      BOOL IsTex0, IsTex1;
+
+    } MaterialData;
     /* Shader pointer */
     shader *Shd;
     /* Texture pointers */
     texture *Tex[2];
+
+    ID3D11Buffer* ConstBuffer = nullptr;
 
     /* Class default constructor */
     material( VOID )
@@ -335,20 +238,19 @@ namespace ragl
     material( const std::string &NewName,
               const color3 &NewKa = color3(0.1, 0.3, 0.2), const color3 &NewKd = color3(0.9), const color3 &NewKs = color3(0.2),
               FLT NewPh = 30, FLT NewTrans = 0,
-              shader *NewShd = NULL, texture *NewTex0 = NULL, texture *NewTex1 = NULL ) :
-      Name(NewName), Ka(NewKa), Kd(NewKd), Ks(NewKs), Ph(NewPh), Trans(NewTrans),
-      Shd(NewShd)
-    {
-      Tex[0] = NewTex0;
-      Tex[1] = NewTex1;
-    } /* End of 'material' function */
+              shader *NewShd = NULL, texture *NewTex0 = NULL, texture *NewTex1 = NULL );
 
     /* Apply material function.
      * ARGUMENTS: None.
      * RETURNS:
      *   (UINT) shader program Id;
      */
-    UINT Apply( VOID );
+    VOID Apply( VOID );
+
+    ~material(VOID)
+    {
+      if (ConstBuffer) ConstBuffer->Release();
+    }
   }; /* End of 'material' class */
 } /* end of 'ragl' namespace */
 

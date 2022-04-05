@@ -67,10 +67,19 @@ namespace ragl
       STRIP     /* Strip of triangles */
     }; /* End of 'type' enumeration */
 
+    struct transform
+    {
+      raw_matr MatrWVP;
+      raw_matr MatrWorld;
+      raw_matr MatrWorldInvTrans;
+    };
+
     type Type;   /* Primitive type */
+    ID3D11InputLayout* VertexLayout = nullptr;
     UINT VA;     /* Primitive vertex array */
-    UINT VBuf;   /* Vertex buffer */
-    UINT IBuf;   /* Index buffer */
+    ID3D11Buffer* VertexBuffer = nullptr;
+    ID3D11Buffer* IndexBuffer = nullptr;
+    ID3D11Buffer* TransformConstBuf = nullptr;
     INT NumOfElements; /* Number of elements for OpenGL */
     matr Transform; /* Primitive transformation matrix */
     material *Mtl; /* Material pointer */
@@ -91,9 +100,7 @@ namespace ragl
     prim( const topology::base &T );
 
     /* Class destructor */
-    ~prim( VOID )
-    {
-    } // End of 'prim' destructor
+    ~prim( VOID );
 
     /* Primitive draw function.
      * ARGUMENTS: None.

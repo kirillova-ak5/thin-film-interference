@@ -74,7 +74,7 @@ VOID ragl::tarakan::Response( ragl::anim *Ani )
  */
 VOID ragl::tarakan::Render( ragl::anim *Ani )
 {
-  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  ///glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   sph.Draw(matr());
 } /* End of 'Render' function */
 

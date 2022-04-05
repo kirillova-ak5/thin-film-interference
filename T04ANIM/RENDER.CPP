@@ -5,6 +5,7 @@
  */
 
 #include "RENDER.H"
+#include "ANIM.H"
 
 /* Default constructor method
  *   ARGUMENTS:
@@ -13,37 +14,226 @@
  *   RETURNS:
  *     - new render;
  */
-ragl::render::render( HWND hwnd ) : hWnd(hwnd), hDC(GetDC(hWnd)), Cam()
+ragl::render::render(HWND hwnd) : hWnd(hwnd), hDC(GetDC(hWnd)), Cam()
 {
-  INT i;
-  PIXELFORMATDESCRIPTOR pfd = {0};
 
-  /* OpenGL initialization: setup pixel format */
-  pfd.nSize = sizeof(pfd);
-  pfd.nVersion = 1;
-  pfd.dwFlags = PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL;
-  pfd.cColorBits = 32;
-  pfd.cDepthBits = 32;
-  i = ChoosePixelFormat(hDC, &pfd);
-  DescribePixelFormat(hDC, i, sizeof(pfd), &pfd);
-  SetPixelFormat(hDC, i, &pfd);
+  HRESULT hr = S_OK;
 
-  /* OpenGL initialization: setup rendering context */
-  hGLRC = wglCreateContext(hDC);
-  wglMakeCurrent(hDC, hGLRC);
-  if (glewInit() != GLEW_OK ||
-      !(GLEW_ARB_vertex_shader && GLEW_ARB_fragment_shader))
+  RECT rc;
+  GetClientRect(hWnd, &rc);
+  UINT width = rc.right - rc.left;
+  UINT height = rc.bottom - rc.top;
+
+  UINT createDeviceFlags = 0;
+#ifdef _DEBUG
+  createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
+
+  D3D_DRIVER_TYPE driverTypes[] =
   {
-    wglMakeCurrent(NULL, NULL);
-    wglDeleteContext(hGLRC);
-    ReleaseDC(hWnd, hDC);
-    MessageBox(hWnd, "Error rendering contex creation", "Anim: ERROR", MB_ICONERROR | MB_OK);
-    exit(0);
+      D3D_DRIVER_TYPE_HARDWARE,
+      D3D_DRIVER_TYPE_WARP,
+      D3D_DRIVER_TYPE_REFERENCE,
+  };
+  UINT numDriverTypes = ARRAYSIZE(driverTypes);
+
+  D3D_FEATURE_LEVEL featureLevels[] =
+  {
+      D3D_FEATURE_LEVEL_11_1,
+      D3D_FEATURE_LEVEL_11_0,
+      D3D_FEATURE_LEVEL_10_1,
+      D3D_FEATURE_LEVEL_10_0,
+  };
+  UINT numFeatureLevels = ARRAYSIZE(featureLevels);
+
+  for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++)
+  {
+    DriverType = driverTypes[driverTypeIndex];
+    hr = D3D11CreateDevice(nullptr, DriverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels,
+      D3D11_SDK_VERSION, &Driver, &FeatureLevel, &DriverIterface);
+
+    if (hr == E_INVALIDARG)
+    {
+      // DirectX 11.0 platforms will not recognize D3D_FEATURE_LEVEL_11_1 so we need to retry without it
+      hr = D3D11CreateDevice(nullptr, DriverType, nullptr, createDeviceFlags, &featureLevels[1], numFeatureLevels - 1,
+        D3D11_SDK_VERSION, &Driver, &FeatureLevel, &DriverIterface);
+    }
+
+    if (SUCCEEDED(hr))
+      break;
+  }
+  if (FAILED(hr))
+    MessageBox(NULL, "Failed to create device", "ERROR", MB_OK);
+
+  // Obtain DXGI factory from device (since we used nullptr for pAdapter above)
+  IDXGIFactory1* dxgiFactory = nullptr;
+  {
+    IDXGIDevice* dxgiDevice = nullptr;
+    hr = Driver->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(&dxgiDevice));
+    if (SUCCEEDED(hr))
+    {
+      IDXGIAdapter* adapter = nullptr;
+      hr = dxgiDevice->GetAdapter(&adapter);
+      if (SUCCEEDED(hr))
+      {
+        hr = adapter->GetParent(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(&dxgiFactory));
+        adapter->Release();
+      }
+      dxgiDevice->Release();
+    }
+  }
+  if (FAILED(hr))
+    MessageBox(NULL, "Failed to Obtain DXGI factory", "ERROR", MB_OK);
+
+  // Create swap chain
+  IDXGIFactory2* dxgiFactory2 = nullptr;
+  hr = dxgiFactory->QueryInterface(__uuidof(IDXGIFactory2), reinterpret_cast<void**>(&dxgiFactory2));
+  if (dxgiFactory2)
+  {
+    // DirectX 11.1 or later
+    hr = Driver->QueryInterface(__uuidof(ID3D11Device1), reinterpret_cast<void**>(&Driver1));
+    if (SUCCEEDED(hr))
+    {
+      (void)DriverIterface->QueryInterface(__uuidof(ID3D11DeviceContext1), reinterpret_cast<void**>(&DriverIterface1));
+    }
+
+    DXGI_SWAP_CHAIN_DESC1 sd;
+    ZeroMemory(&sd, sizeof(sd));
+    sd.Width = width;
+    sd.Height = height;
+    sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    sd.SampleDesc.Count = 1;
+    sd.SampleDesc.Quality = 0;
+    sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    sd.BufferCount = 1;
+
+    hr = dxgiFactory2->CreateSwapChainForHwnd(Driver, hWnd, &sd, nullptr, nullptr, &SwapChain1);
+    if (SUCCEEDED(hr))
+    {
+      hr = SwapChain1->QueryInterface(__uuidof(IDXGISwapChain), reinterpret_cast<void**>(&SwapChain));
+    }
+
+    dxgiFactory2->Release();
+  }
+  else
+  {
+    // DirectX 11.0 systems
+    DXGI_SWAP_CHAIN_DESC sd;
+    ZeroMemory(&sd, sizeof(sd));
+    sd.BufferCount = 1;
+    sd.BufferDesc.Width = width;
+    sd.BufferDesc.Height = height;
+    sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    sd.BufferDesc.RefreshRate.Numerator = 60;
+    sd.BufferDesc.RefreshRate.Denominator = 1;
+    sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    sd.OutputWindow = hWnd;
+    sd.SampleDesc.Count = 1;
+    sd.SampleDesc.Quality = 0;
+    sd.Windowed = TRUE;
+
+    hr = dxgiFactory->CreateSwapChain(Driver, &sd, &SwapChain);
   }
 
-  glEnable(GL_DEPTH_TEST);
+  // Note this tutorial doesn't handle full-screen swapchains so we block the ALT+ENTER shortcut
+  dxgiFactory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER);
+
+  dxgiFactory->Release();
+
+  if (FAILED(hr))
+    MessageBox(NULL, "Failed to init dx", "ERROR", MB_OK);
+
+  // Create a render target view
+  ID3D11Texture2D* pBackBuffer = nullptr;
+  hr = SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer));
+  if (FAILED(hr))
+    MessageBox(NULL, "Failed to init backbuf", "ERROR", MB_OK);
+
+  hr = Driver->CreateRenderTargetView(pBackBuffer, nullptr, &RenderTargetView);
+  pBackBuffer->Release();
+  if (FAILED(hr))
+    MessageBox(NULL, "Failed to CreateRenderTargetView", "ERROR", MB_OK);
+
+  // Create depth stencil texture
+  D3D11_TEXTURE2D_DESC descDepth;
+  ZeroMemory(&descDepth, sizeof(descDepth));
+  descDepth.Width = width;
+  descDepth.Height = height;
+  descDepth.MipLevels = 1;
+  descDepth.ArraySize = 1;
+  descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+  descDepth.SampleDesc.Count = 1;
+  descDepth.SampleDesc.Quality = 0;
+  descDepth.Usage = D3D11_USAGE_DEFAULT;
+  descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+  descDepth.CPUAccessFlags = 0;
+  descDepth.MiscFlags = 0;
+  hr = Driver->CreateTexture2D(&descDepth, nullptr, &DepthStencilTex);
+  if (FAILED(hr))
+    MessageBox(NULL, "Failed to Create DepthStencilTex", "ERROR", MB_OK);
+
+  // Create the depth stencil view
+  D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
+  ZeroMemory(&descDSV, sizeof(descDSV));
+  descDSV.Format = descDepth.Format;
+  descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+  descDSV.Texture2D.MipSlice = 0;
+  hr = Driver->CreateDepthStencilView(DepthStencilTex, &descDSV, &DepthStencilView);
+  if (FAILED(hr))
+    MessageBox(NULL, "Failed to Create DepthStencilView", "ERROR", MB_OK);
+
+  DriverIterface->OMSetRenderTargets(1, &RenderTargetView, DepthStencilView);
+
+  // Setup the viewport
+  D3D11_VIEWPORT vp;
+  vp.Width = (FLOAT)width;
+  vp.Height = (FLOAT)height;
+  vp.MinDepth = 0.0f;
+  vp.MaxDepth = 1.0f;
+  vp.TopLeftX = 0;
+  vp.TopLeftY = 0;
+  DriverIterface->RSSetViewports(1, &vp);
+
+  D3D11_BUFFER_DESC bd;
+  ZeroMemory(&bd, sizeof(D3D11_BUFFER_DESC));
+  bd.Usage = D3D11_USAGE_DEFAULT;
+  bd.ByteWidth = sizeof(common_cb_data);
+  bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+  bd.CPUAccessFlags = 0;
+  hr = Driver->CreateBuffer(&bd, nullptr, &CommonConstBuf);
+  if (FAILED(hr))
+  {
+    MessageBox(NULL, "Failed to create common cb", "ERROR", MB_OK);
+    return;
+  }
+
+  D3D11_BLEND_DESC BlendState;
+  ZeroMemory(&BlendState, sizeof(D3D11_BLEND_DESC));
+  BlendState.RenderTarget[0].BlendEnable = FALSE;
+  BlendState.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+  hr = Driver->CreateBlendState(&BlendState, &BlendStateOpaqe);
+  if (FAILED(hr))
+  {
+    MessageBox(NULL, "Failed to create BlendStateOpaqe", "ERROR", MB_OK);
+  }
+
+  BlendState.RenderTarget[0].BlendEnable = TRUE;
+  BlendState.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+  BlendState.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+  BlendState.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+  BlendState.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+  BlendState.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+  BlendState.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+  BlendState.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+  hr = Driver->CreateBlendState(&BlendState, &BlendStateTransparent);
+  if (FAILED(hr))
+  {
+    MessageBox(NULL, "Failed to create BlendStateTransparent", "ERROR", MB_OK);
+  }
+
+
   AddMaterial("default", color3(0.1, 0.3, 0.2), color3(0.9), color3(0.0), 30, 0,
-                            AddShader("bin\\shaders\\def"), NULL, NULL );
+    AddShader("shaders\\def"), NULL, NULL);
 } /* End of default constructor method */
 
 /* Resize method
@@ -54,7 +244,15 @@ ragl::render::render( HWND hwnd ) : hWnd(hwnd), hDC(GetDC(hWnd)), Cam()
  */
 VOID ragl::render::Resize( INT w, INT h )
 {
-  glViewport(0, 0, w, h);
+  D3D11_VIEWPORT vp;
+  vp.Width = (FLOAT)w;
+  vp.Height = (FLOAT)h;
+  vp.MinDepth = 0.0f;
+  vp.MaxDepth = 1.0f;
+  vp.TopLeftX = 0;
+  vp.TopLeftY = 0;
+  DriverIterface->RSSetViewports(1, &vp);
+
   Cam.Resize(w, h);
 } /* End of 'Resize' method */
 
@@ -64,9 +262,21 @@ VOID ragl::render::Resize( INT w, INT h )
  */
 VOID ragl::render::FrameStart( VOID )
 {
-  glClearColor((FLT)0.30, (FLT)0.50, (FLT)0.8, (FLT)1);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glLoadMatrixf((FLT *)Cam.GetMatrVP());                            ///????????????? /*____________*/
+  float clearColor[] = { 0.3, 0.47, 0.8, 1.0 };
+  DriverIterface->ClearRenderTargetView(RenderTargetView, clearColor);
+  DriverIterface->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+  common_cb_data d;
+  d.MatrView = (float *)Cam.GetMatrView();
+  d.MatrProj = (float *)Cam.GetMatrProj();
+  d.CamLoc = Cam.GetLoc();
+  d.Time = anim::GetAnim()->GetTime();
+
+  DriverIterface->UpdateSubresource(CommonConstBuf, 0, nullptr, &d, 0, 0);
+  DriverIterface->VSSetConstantBuffers(CONST_BUF_SLOT_COMMON, 1, &CommonConstBuf);
+  DriverIterface->PSSetConstantBuffers(CONST_BUF_SLOT_COMMON, 1, &CommonConstBuf);
+
+  SetTransparency(FALSE);
 } /* End of 'FrameStart' method */
 
 /* FrameCopy method
@@ -75,7 +285,7 @@ VOID ragl::render::FrameStart( VOID )
  */
 VOID ragl::render::FrameCopy( VOID )
 {
-  SwapBuffers(hDC);
+  //SwapBuffers(hDC);
 } /* End of 'FrameCopy' method */
 
 /* FrameEnd method
@@ -84,7 +294,7 @@ VOID ragl::render::FrameCopy( VOID )
  */
 VOID ragl::render::FrameEnd( VOID )
 {
-  glFinish();
+  SwapChain->Present(0, 0);
 } /* End of 'FrameEnd' method */
 
 /* Destructor method
@@ -94,9 +304,21 @@ VOID ragl::render::FrameEnd( VOID )
 ragl::render::~render( VOID )
 {
   /* Delete OpenGL data */
-   wglMakeCurrent(NULL, NULL);
-   wglDeleteContext(hGLRC);
-   /* Delete GDI data */
+  if (DriverIterface) DriverIterface->ClearState();
+
+  if (DepthStencilTex) DepthStencilTex->Release();
+  if (DepthStencilView) DepthStencilView->Release();
+  if (RenderTargetView) RenderTargetView->Release();
+  if (CommonConstBuf) CommonConstBuf->Release();
+  if (BlendStateOpaqe) BlendStateOpaqe->Release();
+  if (BlendStateTransparent) BlendStateTransparent->Release();
+  if (SwapChain1) SwapChain1->Release();
+  if (SwapChain) SwapChain->Release();
+  if (DriverIterface1) DriverIterface1->Release();
+  if (DriverIterface) DriverIterface->Release();
+  if (Driver1) Driver1->Release();
+  if (Driver) Driver->Release();
+  /* Delete GDI data */
    ReleaseDC(hWnd, hDC);
 } /* End of destructor method */
 
@@ -165,11 +387,11 @@ ragl::render::~render( VOID )
   material *mtl;
   if ((mtl = Materials.Find(Name)) != NULL)
   {
-    mtl->Ka = Ka;
-    mtl->Kd = Kd;
-    mtl->Ks = Ks;
-    mtl->Ph = Ph;
-    mtl->Trans = Trans;
+    mtl->MaterialData.Ka = Ka;
+    mtl->MaterialData.Kd = Kd;
+    mtl->MaterialData.Ks = Ks;
+    mtl->MaterialData.Ph = Ph;
+    mtl->MaterialData.Trans = Trans;
     mtl->Shd = Shd;
     mtl->Tex[0] = Tex0;
     mtl->Tex[1] = Tex1;

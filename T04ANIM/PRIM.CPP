@@ -26,54 +26,58 @@ ragl::prim::prim( const topology::base &T ) :
   StartMax = Max;
   StartMin = Min;
 
-  /* Create OpenGL buffers */
-  glGenVertexArrays(1, &VA);
-  glGenBuffers(1, &VBuf);
+  D3D11_BUFFER_DESC bd;
+  ZeroMemory(&bd, sizeof(bd));
+  bd.Usage = D3D11_USAGE_DEFAULT;
+  bd.ByteWidth = sizeof(VERTEX) * T.V.size();
+  bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+  bd.CPUAccessFlags = 0;
+  D3D11_SUBRESOURCE_DATA InitData;
+  ZeroMemory(&InitData, sizeof(InitData));
+  InitData.pSysMem = &T.V[0];
 
-  /* Activate vertex array */
-  glBindVertexArray(VA);
-  /* Activate vertex buffer */
-  glBindBuffer(GL_ARRAY_BUFFER, VBuf);
-  /* Store vertex data */
-  glBufferData(GL_ARRAY_BUFFER, sizeof(VERTEX) * T.V.size(), &T.V[0], GL_STATIC_DRAW);
+  render* rnd = anim::GetAnim();
+  HRESULT hr = rnd->GetDriver()->CreateBuffer(&bd, &InitData, &VertexBuffer);
+  if (FAILED(hr))
+    MessageBox(NULL, "Failed to create vertex buf", "ERROR", MB_OK);
 
-  /* Setup data order */
-  /*                    layout,
-    *                      components count,
-    *                          type
-    *                                    should be normalize,
-    *                                           vertex structure size in bytes (stride),
-    *                                               offset in bytes to field start */
-  glVertexAttribPointer(0, 3, GL_FLOAT, FALSE, sizeof(VERTEX),
-                        (VOID *)0); /* position */
-  glVertexAttribPointer(1, 2, GL_FLOAT, FALSE, sizeof(VERTEX),
-                        (VOID *)sizeof(vec)); /* texture coordinates */
-  glVertexAttribPointer(2, 3, GL_FLOAT, FALSE, sizeof(VERTEX),
-                        (VOID *)(sizeof(vec) + sizeof(vec2))); /* normal */
-  glVertexAttribPointer(3, 4, GL_FLOAT, FALSE, sizeof(VERTEX),
-                        (VOID *)(sizeof(vec) * 2 + sizeof(vec2))); /* color */
+  // Set vertex buffer
+  UINT stride = sizeof(VERTEX);
+  UINT offset = 0;
+  rnd->GetDriverIterface()->IASetVertexBuffers(0, 1, &VertexBuffer, &stride, &offset);
 
-  /* Enable used attributes */
-  glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
-  glEnableVertexAttribArray(2);
-  glEnableVertexAttribArray(3);
+  bd.Usage = D3D11_USAGE_DEFAULT;
+  bd.ByteWidth = sizeof(UINT) * T.I.size();
+  bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+  bd.CPUAccessFlags = 0;
+  InitData.pSysMem = &T.I[0];
+  hr = rnd->GetDriver()->CreateBuffer(&bd, &InitData, &IndexBuffer);
+  if (FAILED(hr))
+    MessageBox(NULL, "Failed to create index buf", "ERROR", MB_OK);
 
-  /* Indices */
-  if (T.I.size() > 0)
-  {
-    glGenBuffers(1, &IBuf);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBuf);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(INT) * T.I.size(), &T.I[0], GL_STATIC_DRAW);
-  }
-  else
-    IBuf = 0, NumOfElements = T.V.size();
+  NumOfElements = T.I.size();
 
-  /* Disable vertex array */
-  glBindVertexArray(0);
-  /* Disable index array */
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  // Set index buffer
+  rnd->GetDriverIterface()->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+  // Set primitive topology
+  rnd->GetDriverIterface()->IASetPrimitiveTopology(Type == TRIMESH ? D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST : D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+  bd.ByteWidth = sizeof(transform);
+  bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+  bd.CPUAccessFlags = 0;
+  hr = rnd->GetDriver()->CreateBuffer(&bd, nullptr, &TransformConstBuf);
+  if (FAILED(hr))
+    MessageBox(NULL, "Failed to create transform constant buf", "ERROR", MB_OK);
+
 } /* End of destructor method */
+
+ragl::prim::~prim(VOID)
+{
+  if (VertexBuffer) VertexBuffer->Release();
+  if (IndexBuffer) IndexBuffer->Release();
+  if (TransformConstBuf) TransformConstBuf->Release();
+}
 
 /* Primitive draw method
  * ARGUMENTS: None.
@@ -82,52 +86,33 @@ ragl::prim::prim( const topology::base &T ) :
 VOID ragl::prim::Draw( const matr &World )
 {
   render *rnd = anim::GetAnim();
-  matr w = Transform * World;
-  matr wvp = w * rnd->Cam.GetMatrVP();
+  transform tr;
+  matr MatrWorld = (Transform * World);
+  matr MatrWVP = MatrWorld * rnd->Cam.GetMatrVP();
+  matr MatrWorldInvTrans = (!MatrWorld).MatrTranspose();
 
-  glLoadMatrixf(wvp);
-  GLenum t = Type == TRIMESH ? GL_TRIANGLES : GL_TRIANGLE_STRIP;
+  tr.MatrWorld = (float *)MatrWorld;
+  tr.MatrWVP = (float*)MatrWVP;
+  tr.MatrWorldInvTrans = (float*)MatrWorldInvTrans;
+
+  rnd->GetDriverIterface()->UpdateSubresource(TransformConstBuf, 0, nullptr, &tr, 0, 0);
+  rnd->GetDriverIterface()->VSSetConstantBuffers(CONST_BUF_SLOT_TRANSFORM, 1, &TransformConstBuf);
 
   material *mtl = Mtl;
   if (mtl == NULL)
     mtl = rnd->Materials.Find("default");
   assert(mtl != NULL);
-  UINT pid = mtl->Apply();
-  assert(pid != 0);
-
-  INT loc;
-  /* Setup global variables */
-  if ((loc = glGetUniformLocation(pid, "MatrWVP")) != -1)
-    glUniformMatrix4fv(loc, 1, FALSE, wvp);
-  if ((loc = glGetUniformLocation(pid, "MatrWorld")) != -1)
-    glUniformMatrix4fv(loc, 1, FALSE, w);
-  if ((loc = glGetUniformLocation(pid, "MatrWorldInvTrans")) != -1)
-    glUniformMatrix4fv(loc, 1, FALSE, (!w).MatrTranspose());
-  if ((loc = glGetUniformLocation(pid, "MatrView")) != -1)
-    glUniformMatrix4fv(loc, 1, FALSE, rnd->Cam.GetMatrView());
-  if ((loc = glGetUniformLocation(pid, "MatrProj")) != -1)
-    glUniformMatrix4fv(loc, 1, FALSE, rnd->Cam.GetMatrProj());
-  if ((loc = glGetUniformLocation(pid, "CamLoc")) != -1)
-    glUniform3fv(loc, 1, (FLT *)rnd->Cam.GetLoc());
-  if ((loc = glGetUniformLocation(pid, "Time")) != -1)
-    glUniform1f(loc, anim::GetAnim()->GetTime());
+  mtl->Apply();
 
   /* Activete primitive vertex array */
-  glEnable(GL_PRIMITIVE_RESTART);
-  glPrimitiveRestartIndex(-1);
+  UINT stride = sizeof(VERTEX);
+  UINT offset = 0;
+  rnd->GetDriverIterface()->IASetVertexBuffers(0, 1, &VertexBuffer, &stride, &offset);
+  rnd->GetDriverIterface()->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+  rnd->GetDriverIterface()->IASetPrimitiveTopology(Type == TRIMESH ? D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST : D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-  glBindVertexArray(VA);
-  if (IBuf == 0)
-    glDrawArrays(t, 0, NumOfElements);
-  else
-  {
-    /* Activete primitive index buffer */
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBuf);
-    /* Draw primitive */
-    glDrawElements(t, NumOfElements, GL_UNSIGNED_INT, NULL);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  }
-  glBindVertexArray(0);
+  rnd->GetDriverIterface()->DrawIndexed(NumOfElements, 0, 0);
+
 } /* End of 'Draw' method */
 
 /****************************/
@@ -137,13 +122,26 @@ VOID ragl::prim::Draw( const matr &World )
 /* Default constructor method */
 ragl::primitives::primitives( VOID ) : Transform(matr())
 {
+/*  D3D11_BUFFER_DESC bd;
+  ZeroMemory(&bd, sizeof(bd));
+  bd.Usage = D3D11_USAGE_DEFAULT;
+  bd.ByteWidth = sizeof(matr);
+  bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+  bd.CPUAccessFlags = 0;
+  render* rnd = anim::GetAnim();
+  HRESULT hr = rnd->GetDriver()->CreateBuffer(&bd, nullptr, &TransformConstBuf);
+  if (FAILED(hr))
+    MessageBox(NULL, "Failed to create transform constant buf", "ERROR", MB_OK);*/
+
 } /* End of default constructor method */
 
 /* Destructor */
 ragl::primitives::~primitives( VOID )
 {
-  for (auto p : Prims)
-    delete p;
+  for (int i = 0; i < Prims.size(); i++)
+    delete Prims[i];
+  Prims.clear();
+  //if (TransformConstBuf) TransformConstBuf->Release();
 } /* End of destructor method */
 
 /* Primitives set draw function.
@@ -155,8 +153,6 @@ ragl::primitives::~primitives( VOID )
 VOID ragl::primitives::Draw( const matr &World )
 {
   INT i;
-  INT save;
-  BOOL is;
 
   // Draw solid bodyes
   i = 0;
@@ -166,41 +162,35 @@ VOID ragl::primitives::Draw( const matr &World )
     p->Id2 = Prims.size();
     material *mtl = p->Mtl;
     if (mtl != NULL)
-      if (mtl->Trans != 1)
+      if (mtl->MaterialData.Trans != 1)
         continue;
     p->Draw(Transform * World);
   }
-  glGetIntegerv(GL_CULL_FACE_MODE, &save);
+/*  glGetIntegerv(GL_CULL_FACE_MODE, &save);
   is = glIsEnabled(GL_CULL_FACE);
 
   glEnable(GL_CULL_FACE);
-  glCullFace(GL_FRONT);
+  glCullFace(GL_FRONT);*/
   for (auto p : Prims)
   {
     p->Id = i++;
     p->Id2 = Prims.size();
     material *mtl = p->Mtl;
-    if (mtl == NULL || mtl->Trans == 1)
+    if (mtl == NULL || mtl->MaterialData.Trans == 1)
         continue;
     p->Draw(Transform * World);
   }
 
-  glCullFace(GL_BACK);
+//  glCullFace(GL_BACK);
   for (auto p : Prims)
   {
     p->Id = i++;
     p->Id2 = Prims.size();
     material *mtl = p->Mtl;
-    if (mtl == NULL || mtl->Trans == 1)
+    if (mtl == NULL || mtl->MaterialData.Trans == 1)
         continue;
     p->Draw(Transform * World);
   }
-
-  if (is)
-    glEnable(GL_CULL_FACE);
-  else
-    glDisable(GL_CULL_FACE);
-  glCullFace(save);
 } /* End of 'ragl::primitives::Draw' function */
 
 
@@ -260,6 +250,8 @@ BOOL ragl::primitives::Load( const std::string &FileName, const matr &Transform 
       V[j].P = V[j].P.PointTransform(Transform);
       V[j].N = V[j].N.NormalTransform(Transform);
     }
+    for (int k = 0; k < ni; k += 3)
+      std::swap(I[k], I[k + 2]);
     Prims[i] = new prim(topology::trimesh(V, I));
   }
 
@@ -431,7 +423,7 @@ ragl::topology::grid::grid( INT NewW, INT NewH ) : W(NewW), H(NewH), base(prim::
     }
     I[k++] = -1;
   }
-} /* End of constructor method */
+  } /* End of constructor method */
 
 /* Evaluate grid vertex normals function.
  * ARGUMENTS: None.
@@ -453,8 +445,8 @@ ragl::topology::grid & ragl::topology::grid::EvalNormals( VOID )
         *p01 = &V[k + 1],
         *p11 = &V[k + W + 1];
       vec
-        N1 = (p00->P - p10->P) % (p11->P - p10->P),
-        N2 = (p11->P - p01->P) % (p00->P - p01->P);
+        N1 = -((p00->P - p10->P) % (p11->P - p10->P)),
+        N2 = -((p11->P - p01->P) % (p00->P - p01->P));
       N1.Normalize();
       N2.Normalize();
 

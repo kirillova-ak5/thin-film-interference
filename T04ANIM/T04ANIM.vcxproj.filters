@@ -113,6 +113,9 @@
     <ClInclude Include="U_SKY.H">
       <Filter>Units\Nature</Filter>
     </ClInclude>
+    <ClInclude Include="U_BUBBLE.H">
+      <Filter>Units</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MAIN.CPP" />
@@ -167,6 +170,9 @@
     </ClCompile>
     <ClCompile Include="U_SKY.CPP">
       <Filter>Units\Nature</Filter>
+    </ClCompile>
+    <ClCompile Include="U_BUBBLE.CPP">
+      <Filter>Units</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

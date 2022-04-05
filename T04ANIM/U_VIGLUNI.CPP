@@ -47,7 +47,7 @@ VOID ragl::vigluni::Response( ragl::anim *Ani )
  */
 VOID ragl::vigluni::Render( ragl::anim *Ani )
 {
-  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+ ///// glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   ///glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   ///ragl::prim pri(ragl::topology::trimesh({ragl::vec(0), ragl::vec(1, 0, 0), ragl::vec(0, 1, 0),
   ///                                        ragl::vec(0), ragl::vec(0, 0, 1), ragl::vec(0, 1, 0)}));

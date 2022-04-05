@@ -10,19 +10,51 @@
 #include "DEF.H"
 #include "CAMERA.H"
 #include "res.h"
-#pragma comment(lib, "glew32s")
-#pragma comment(lib, "opengl32")
-#pragma comment(lib, "glu32")
+
 
 /* Working namespace of AK5a */
 namespace ragl
 {
+  enum const_buf_slots
+  {
+    CONST_BUF_SLOT_COMMON,
+    CONST_BUF_SLOT_TRANSFORM,
+    CONST_BUF_SLOT_MATERIAL,
+  };
+
+  enum texture_slots
+  {
+    TEXTURE_MATERIAL_SLOT_0,
+    TEXTURE_MATERIAL_SLOT_1
+  };
+
+  struct common_cb_data
+  {
+    raw_matr MatrView;
+    raw_matr MatrProj;
+    vec CamLoc;
+    float Time;
+  };
+
   class render
   {
   private:
     HWND hWnd;        // Work window handle
     HDC hDC;          //Work window device context
-    HGLRC hGLRC;      //GL rendering context
+    ID3D11Device* Driver = nullptr;
+    ID3D11Device1* Driver1 = nullptr;
+    ID3D11DeviceContext* DriverIterface = nullptr;
+    ID3D11DeviceContext1* DriverIterface1 = nullptr;
+    IDXGISwapChain*SwapChain = nullptr;
+    IDXGISwapChain1* SwapChain1 = nullptr;
+    ID3D11RenderTargetView* RenderTargetView = nullptr;
+    ID3D11Texture2D* DepthStencilTex = nullptr;
+    ID3D11DepthStencilView* DepthStencilView = nullptr;
+    ID3D11Buffer* CommonConstBuf = nullptr;
+    D3D_DRIVER_TYPE DriverType = D3D_DRIVER_TYPE_NULL;
+    D3D_FEATURE_LEVEL FeatureLevel = D3D_FEATURE_LEVEL_11_0;
+    ID3D11BlendState* BlendStateOpaqe = nullptr, * BlendStateTransparent = nullptr;
+
   public:
     camera Cam;       //Current camera
 
@@ -74,6 +106,21 @@ namespace ragl
      *   RETURNS  : none.
      */
     ~render( VOID );
+
+    VOID SetTransparency(BOOL enable)
+    {
+      float blendFactorO[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+      float blendFactorT[4] = { 0.8f, 0.8f, 0.8f, 1.0f };
+      UINT sampleMask = 0xffffffff;
+
+      if (enable)
+        DriverIterface->OMSetBlendState(BlendStateTransparent, blendFactorT, sampleMask);
+      else
+        DriverIterface->OMSetBlendState(BlendStateOpaqe, blendFactorO, sampleMask);
+    }
+
+    ID3D11Device* GetDriver( VOID ) { return Driver; }
+    ID3D11DeviceContext* GetDriverIterface(VOID) { return DriverIterface; }
 
     /* Create shader function.
      * ARGUMENTS:

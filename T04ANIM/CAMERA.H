@@ -30,7 +30,7 @@ namespace mth
      *   RETURNS:
      *     - new camera;
      */
-    camera( VOID ) : W(1), H(1), ProjDist(1), Size(1), FarClip(1000),
+    camera( VOID ) : W(1), H(1), ProjDist(1), Size(0.25), FarClip(1000),
       Loc(mth::vec<Type>(20)), At(mth::vec<Type>(0)), Up(mth::vec<Type>(0, 1, 0)),
       MatrView(mth::matr<Type>::MatrView(Loc, At, Up))
     {
@@ -92,6 +92,11 @@ namespace mth
       return At;
     } /* End of 'GetAt' method */
 
+    mth::vec<Type>& GetRight(VOID)
+    {
+      return Right = !(Dir % Up);
+    } /* End of 'GetAt' method */
+
     /* Update projection method
      *   ARGUMENTS: none.
      *   RETURNS  : none.
@@ -103,8 +108,8 @@ namespace mth
         rx = (DBL)W / H;
       else
         ry = (DBL)H / W;
-      MatrProj = mth::matr<Type>::MatrFrustum(-rx * Size / 2, rx * Size / 2,
-                                              -ry * Size / 2, ry * Size / 2, 
+      MatrProj = mth::matr<Type>::MatrFrustum(-rx * Size / 6, rx * Size / 6,
+                                              -ry * Size / 6, ry * Size / 6, 
                                                ProjDist, FarClip);
       MatrVP = MatrView * MatrProj;
     } /* End of 'UpdateProj' method */

@@ -45,7 +45,7 @@ VOID ragl::house::Response( ragl::anim *Ani )
  */
 VOID ragl::house::Render( ragl::anim *Ani )
 {
-  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+///  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   for (int i = 0; i < 5; i++)
     sph.Draw(matr::MatrTranslation(Pos[i]));
 }

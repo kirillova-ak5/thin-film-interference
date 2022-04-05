@@ -94,6 +94,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>D:\dev\TGRKIT\LIB</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -126,6 +127,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>D:\dev\TGRKIT\LIB</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -154,6 +156,7 @@
     <ClCompile Include="RENDER.CPP" />
     <ClCompile Include="RES.CPP" />
     <ClCompile Include="TIMER.CPP" />
+    <ClCompile Include="U_BUBBLE.CPP" />
     <ClCompile Include="U_CONTROL.CPP" />
     <ClCompile Include="U_EDGE.CPP" />
     <ClCompile Include="U_GROUND.CPP" />
@@ -183,6 +186,7 @@
     <ClInclude Include="STOCK.H" />
     <ClInclude Include="TIMER.H" />
     <ClInclude Include="UNIT.H" />
+    <ClInclude Include="U_BUBBLE.H" />
     <ClInclude Include="U_CONTROL.H" />
     <ClInclude Include="U_EDGE.H" />
     <ClInclude Include="U_GROUND.H" />

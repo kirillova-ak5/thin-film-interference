@@ -661,6 +661,7 @@ namespace mth
         Type  x = this->GetX(), y = this->GetY(), z = this->GetZ();
         if (!w.IsInverseEvaluated)
           w.EvInverse();
+        w = w.MatrTranspose();
         return vec<Type>(x * w.M[0][0] + y * w.M[0][1] + z * w.M[0][2], 
                          x * w.M[1][0] + y * w.M[1][1] + z * w.M[1][2], 
                          x * w.M[2][0] + y * w.M[2][1] + z * w.M[2][2]);

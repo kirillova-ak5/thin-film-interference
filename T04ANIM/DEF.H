@@ -11,10 +11,9 @@
 
 #pragma warning(disable : 4200 4244 4013 4018 4115 4761 4127 4305)
 
-/* WinAPI and OpenGL depended files */
-#define GLEW_STATIC
-#include <glew.h>
-#include <gl/glu.h>
+/* WinAPI and Direct3D depended files */
+#include <d3d11_1.h>
+#include <d3dcompiler.h>
 
 #include <windows.h>
 #include <cassert>
@@ -29,6 +28,7 @@ namespace ragl
   typedef mth::vec<FLT> vec;
   typedef mth::vec2<FLT> vec2;
   typedef mth::matr<FLT> matr;
+  typedef mth::raw_matr<FLT> raw_matr;
   typedef mth::color<FLT> color;
   typedef mth::camera<FLT> camera;
 } /* End of 'ragl' namespace */

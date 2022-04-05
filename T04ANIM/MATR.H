@@ -557,6 +557,17 @@ namespace mth
     return C;
   } /* End of 'operator<<' function */
 
+  template<class Type>
+  struct raw_matr
+  {
+    Type m[16];
+    raw_matr& operator=(const Type* s)
+    {
+      memcpy(m, s, sizeof(Type) * 16);
+      return *this;
+    }
+  };
+
 } /* End of 'mth' namespace */
 #endif // !__MATR_H_
 

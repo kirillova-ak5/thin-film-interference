@@ -27,7 +27,7 @@ ragl::sky::sky( ragl::anim *Ani ) : unit(),
     ragl::shader *shd = Ani->Shaders.Find("sky");
     if (shd == NULL)
     {
-      shd = Ani->AddShader("bin/shaders/sky");
+      shd = Ani->AddShader("shaders/sky");
     }
     mtl = Ani->AddMaterial("sky", vec(0.1, 0.6, 0.8), vec(0.1), vec(0), 0, 0, shd);
     //mtl->Tex[0] = Ani->AddTexture("bin/textures/Skyoba.g32", w, h, 4, &img[4]);
@@ -54,7 +54,7 @@ VOID ragl::sky::Response( ragl::anim *Ani )
  */
 VOID ragl::sky::Render( ragl::anim *Ani )
 {
-  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  ///glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   sph.Draw(matr());     
 }
 

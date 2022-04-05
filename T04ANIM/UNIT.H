@@ -32,7 +32,7 @@ namespace ragl
      *   ARGUMENTS: none.
      *   RETURNS  : none.
      */
-    ~unit( VOID )
+    virtual ~unit( VOID )
     {
     }
 

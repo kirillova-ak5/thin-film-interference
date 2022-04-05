@@ -9,6 +9,7 @@
 #include "u_ground.h"
 #include "u_house.h"
 #include "u_sky.h"
+#include "U_BUBBLE.H"
 #include "anim.h"
 
 /* Class constructor.
@@ -19,10 +20,11 @@
 ragl::control::control( ragl::anim *Ani ) : unit()
 {
   srand(Ani->GetGlobalTime());
-  Ani->Cam.SetView(ragl::vec(5, 0.8, 5), ragl::vec(1, 0, 1));
+  Ani->Cam.SetView(ragl::vec(10, 0.8, 5), ragl::vec(3, 0.8, 3));
   *Ani << new ground(Ani);
-  *Ani << new sky(Ani);
+///  *Ani << new sky(Ani);
   *Ani << new house(Ani, vec(0), "Building_A08.g3dm");
+  *Ani << new bubble(Ani, vec(3, 1, 3));
 } /* End of constructor method */
 
 /* Interframe animation response method
@@ -37,7 +39,7 @@ VOID ragl::control::Response( ragl::anim *Ani )
   ///p.Draw(matr());
   static INT jumpCounter = 0;
   static  FLT TimeShift = 0;
-  vec L = Ani->Cam.GetLoc(), D = !(Ani->Cam.GetAt() - L);
+  vec L = Ani->Cam.GetLoc(), D = !(Ani->Cam.GetAt() - L), R = Ani->Cam.GetRight();
   /* Keyboard handle */
   if (Ani->KeysClick[VK_ESCAPE])
     Ani->OnDestroy();
@@ -61,10 +63,14 @@ VOID ragl::control::Response( ragl::anim *Ani )
   else if (Ani->Keys['S'])
     L -= vec(D.GetX() / 19, 0, D.GetZ() / 19);
   if (Ani->Keys['A'])
-    D = D * matr::MatrRotationY(120 * Ani->GetGlobalDeltaTime());
+    D = D * matr::MatrRotationY(80 * Ani->GetGlobalDeltaTime());
   else if (Ani->Keys['D'])
-    D = D * matr::MatrRotationY(-120 * Ani->GetGlobalDeltaTime());
-  
+    D = D * matr::MatrRotationY(-80 * Ani->GetGlobalDeltaTime());
+  if (Ani->Keys['Y'])
+    D = D * matr::MatrRotation(-30 * Ani->GetGlobalDeltaTime(), R);
+  else if (Ani->Keys['H'])
+    D = D * matr::MatrRotation(30 * Ani->GetGlobalDeltaTime(), R);
+
   /* Jumping */
   if (jumpCounter)
   {
