@@ -20,7 +20,7 @@
 ragl::control::control( ragl::anim *Ani ) : unit()
 {
   srand(Ani->GetGlobalTime());
-  Ani->Cam.SetView(ragl::vec(10, 0.8, 5), ragl::vec(3, 0.8, 3));
+  Ani->Cam.SetView(ragl::vec(30, 0.8, 15), ragl::vec(3, 0.8, 3));
   *Ani << new ground(Ani);
 ///  *Ani << new sky(Ani);
   *Ani << new house(Ani, vec(0), "Building_A08.g3dm");
@@ -63,9 +63,9 @@ VOID ragl::control::Response( ragl::anim *Ani )
   else if (Ani->Keys['S'])
     L -= vec(D.GetX() / 19, 0, D.GetZ() / 19);
   if (Ani->Keys['A'])
-    D = D * matr::MatrRotationY(80 * Ani->GetGlobalDeltaTime());
+    D = D * matr::MatrRotationY(40 * Ani->GetGlobalDeltaTime());
   else if (Ani->Keys['D'])
-    D = D * matr::MatrRotationY(-80 * Ani->GetGlobalDeltaTime());
+    D = D * matr::MatrRotationY(-40 * Ani->GetGlobalDeltaTime());
   if (Ani->Keys['Y'])
     D = D * matr::MatrRotation(-30 * Ani->GetGlobalDeltaTime(), R);
   else if (Ani->Keys['H'])

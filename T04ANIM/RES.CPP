@@ -207,7 +207,7 @@ ragl::texture::texture(const std::string& NewName, INT NewW, INT NewH, INT Bytes
   else if (BytesPerPixel * 8 == 16 * 4)
     format = DXGI_FORMAT_R16G16B16A16_UINT;
   else if (BytesPerPixel * 8 == 8 * 4)
-    format = DXGI_FORMAT_R8G8B8A8_UINT;
+    format = DXGI_FORMAT_R8G8B8A8_UNORM;
   else
   {
     MessageBox(NULL, "Unknown texture format", "ERROR", MB_OK);

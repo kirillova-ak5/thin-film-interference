@@ -35,6 +35,11 @@ cbuffer ConstBuffer : register(b2)
   int IsTex1;
 };
 
+float sqr(float x)
+{
+  return x * x;
+}
+
 float3 LookUp(float angle)
 {
   float PI = 3.1415926;
@@ -73,6 +78,78 @@ float3 LookUp(float angle)
 
 }
 
+float4 Shade2(float3 P, float3 N, float2 T)
+{
+  float PI = 3.1415926;
+  float Threshold = 0.00005;
+  // Resut color
+  float3 color = float3(0, 0, 0);
+  // materials
+  float3 albedo = Kd;
+  if (IsTex0 == 1)
+    albedo = (Texture0.Sample(Sampler0, T)) * 1.2 + 0.05 * albedo;
+
+  float3 rTemp = float3(1.0, 1.0, 1.0) - Ks;
+  float roughness = min((rTemp.x + rTemp.y + rTemp.z) / 2.0, 0.99);
+  float metallic = min((Ph + 20) / 100.0, 0.99);
+
+  float3 V = normalize(P - CamLoc);
+  V = -V;
+  float3 LightPos = float3(10, 50, 50);
+  float3 LightColor = float(1).xxx;// float3(0.8, 1, 0.9);
+  float LightDist = length(LightPos - P);
+  float3 Ls[] = { normalize(LightPos - P), normalize(float3(50, 50, 10) - P), normalize(float3(-50, 50, -50) - P) };//normalize(float3(-40, 50, -50)) };
+  float3 L = normalize(LightPos - P);
+  float3 R = normalize(reflect(V, N));
+
+  float coef;
+
+  // Ambient
+  color += Ka;
+
+  // for each light
+  for (int i = 0; i < 3; i++)
+  {
+    L = Ls[i];
+    float nl = max(dot(N, L), 0.0);
+    float rl = max(dot(L, R), 0.0);
+    float nv = max(dot(V, N), 0.0);
+    float3 F0 = lerp(float3(0.04, 0.04, 0.04), albedo, metallic);
+    float3 FresnelSchlick = F0 + ((float3(1.0, 1.0, 1.0) - F0) * pow(1.0 - nv, 5.0));
+    // todo attenuate
+    float3 Halfway = normalize(L + V);
+
+    //return F0;
+    //return (Texture0.Sample(Sampler0, T));
+    float DistributionGGX = sqr(roughness) / (PI * sqr(sqr(max(dot(N, Halfway), 0.0)) * (sqr(roughness) - 1.0) + 1.0));
+    float K = sqr(roughness + 1) / 8.0;
+    float GeomObstructionGGX = nv / (nv * (1 - K) + K);
+    float GeomSelfshadingGGX = nl / (nl * (1 - K) + K);
+    float GeomFunc = GeomObstructionGGX * GeomSelfshadingGGX;
+
+    float3 Specular = FresnelSchlick * (DistributionGGX * GeomFunc / (4.0 * (nv + Threshold)));
+
+    float3 KDiffuse = float3(1.0, 1.0, 1.0) - FresnelSchlick;
+    float3 Diffuse = albedo * (1.0 - metallic) * KDiffuse * (1.0 / PI);
+
+    color += (Diffuse + Specular) * nl / 3.0;
+
+    // transp
+    coef = 1.0 - (1.0 - nv) * (1.0 - nv) * (1.0 - nv) * (1.0 - nv) * (1.0 - nv);
+    coef = coef * coef * coef * coef * coef;
+    float tr = min(Trans * coef * 2.0, 1.0);
+    //   return float4(tr.xxx, 1.0);
+
+    float3 inter = LookUp(max(dot(Halfway, N), 0.0));
+    if (inter.x > 0.01 || inter.y > 0.01 || inter.z > 0.01)
+    {
+      float mean = (inter.x + inter.y + inter.z) / 3.0;
+      coef *= 1.0 - 2.0 * mean;
+    }
+    color += inter;
+  }
+  return float4(color, Trans * (1.0 - coef));
+}
 
 float4 Shade(float3 P, float3 N, float2 T)
 {
@@ -98,8 +175,8 @@ float4 Shade(float3 P, float3 N, float2 T)
 
   // Specular
   float3 R = normalize(reflect(V, N));
+  float rl = max(dot(L, R), 0.0);
 
-  float rl = dot(L, R);
   color += Ks * pow(max(rl, 0), Ph + 30);
 
   color += Ka * 0.5;
@@ -125,6 +202,6 @@ float4 Shade(float3 P, float3 N, float2 T)
 
 float4 main(PS_INPUT input) : SV_Target
 {
-  float4 sh = Shade(input.OutWorldPoc, normalize(input.OutNormal), input.OutTexCoord);
+  float4 sh = Shade2(input.OutWorldPoc, normalize(input.OutNormal), input.OutTexCoord);
   return sh;
 }

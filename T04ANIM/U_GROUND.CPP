@@ -20,7 +20,7 @@ ragl::ground::ground( ragl::anim *Ani ) : unit(),
   {
     ragl::shader* shd = Ani->Shaders.Find("def");
 
-    mtl = Ani->AddMaterial("ground", vec(0.05), vec(0.0, 0.8, 0.2), vec(0), 0, 0, shd);
+    mtl = Ani->AddMaterial("ground", vec(0.05), vec(0.0, 1.0, 0.2), vec(0.9), 0, 0, shd);
   }
   sph.Mtl = mtl;
 
