@@ -7,6 +7,135 @@
 #include "RENDER.H"
 #include "ANIM.H"
 
+const D3D_SHADER_MACRO ragl::render::measure_luminance_system::SHADER_CONSTS[][2] =
+{
+  {"LUM_STAGE_EVAL_LOGLUM", "1", nullptr, nullptr},
+  {"LUM_STAGE_DOWNSAMPLE", "1", nullptr, nullptr},
+  {"LUM_STAGE_FINAL", "1", nullptr, nullptr}
+};
+
+ragl::render::measure_luminance_system::measure_luminance_system(render* Rnd) :
+  ShdEvalLogLum("shaders\\measure_lum", SHADER_CONSTS[0]),
+  ShdDownsample("shaders\\measure_lum", SHADER_CONSTS[1]),
+  ShdFinal("shaders\\measure_lum", SHADER_CONSTS[2]),
+  quad(topology::screenspace_quad())
+{
+  D3D11_TEXTURE2D_DESC descRTtex;
+  ZeroMemory(&descRTtex, sizeof(descRTtex));
+  descRTtex.Width = Rnd->SX;
+  descRTtex.Height = Rnd->SY;
+  descRTtex.MipLevels = 1;
+  descRTtex.ArraySize = 1;
+  descRTtex.Format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
+  descRTtex.SampleDesc.Count = 1;
+  descRTtex.SampleDesc.Quality = 0;
+  descRTtex.Usage = D3D11_USAGE_DEFAULT;
+  descRTtex.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+  descRTtex.CPUAccessFlags = 0;
+  descRTtex.MiscFlags = 0;
+  HRESULT hr;
+  D3D11_RENDER_TARGET_VIEW_DESC descRT;
+  descRT.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+  descRT.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+  descRT.Texture2D.MipSlice = 0;
+  D3D11_SHADER_RESOURCE_VIEW_DESC descSRV;
+  descSRV.Format = descRT.Format;
+  descSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+  descSRV.Texture2D.MostDetailedMip = 0;
+  descSRV.Texture2D.MipLevels = 1;
+  for (int i = 0; i <= LUM_RESULT; i++)
+  {
+    hr = Rnd->Driver->CreateTexture2D(&descRTtex, nullptr, &LuminanceTex[i]);
+    if (FAILED(hr))
+      MessageBox(NULL, "Failed to Create LuminanceTex", "ERROR", MB_OK);
+    hr = Rnd->Driver->CreateRenderTargetView(LuminanceTex[i], &descRT, &LuminanceRT[i]);
+    if (FAILED(hr))
+      MessageBox(NULL, "Failed to Create LuminanceRT", "ERROR", MB_OK);
+    hr = Rnd->Driver->CreateShaderResourceView(LuminanceTex[i], &descSRV, &LuminanceSRV[i]);
+    if (FAILED(hr))
+      MessageBox(NULL, "Failed to Create LuminanceSRV", "ERROR", MB_OK);
+    if (i == LUM_RESULT - 1)
+    {
+      descRTtex.Width = descRTtex.Height = 1;
+      descRTtex.Format = descRT.Format = descSRV.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    }
+    else
+    {
+      descRTtex.Width /= 4;
+      descRTtex.Height /= 4;
+    }
+  }
+
+  D3D11_BUFFER_DESC bd;
+  ZeroMemory(&bd, sizeof(D3D11_BUFFER_DESC));
+  bd.Usage = D3D11_USAGE_DEFAULT;
+  bd.ByteWidth = sizeof(screenspace_cb_data);
+  bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+  bd.CPUAccessFlags = 0;
+  hr = Rnd->Driver->CreateBuffer(&bd, nullptr, &ScreenSpaceConstBuf);
+  if (FAILED(hr))
+    MessageBox(NULL, "Failed to create screenspace cb", "ERROR", MB_OK);
+
+}
+
+ragl::render::measure_luminance_system::~measure_luminance_system(VOID)
+{
+  for (int i = 0; i <= LUM_RESULT; i++)
+  {
+    if (LuminanceSRV[i])
+      LuminanceSRV[i]->Release();
+    if (LuminanceRT[i])
+      LuminanceRT[i]->Release();
+    if (LuminanceTex[i])
+      LuminanceTex[i]->Release();
+  }
+  if (ScreenSpaceConstBuf)
+    ScreenSpaceConstBuf->Release();
+}
+
+VOID ragl::render::measure_luminance_system::Draw(render* Rnd, ID3D11ShaderResourceView *src)
+{
+  screenspace_cb_data d;
+  d.sx = Rnd->SX;
+  d.sy = Rnd->SY;
+  d.sxInv = 1.0 / d.sx;
+  d.syInv = 1.0 / d.sy;
+
+
+  for (int i = 0; i <= LUM_RESULT; i++)
+  {
+    Rnd->DriverIterface->OMSetRenderTargets(1, &LuminanceRT[i], nullptr);
+    if (i > 0)
+    {
+      if (i != LUM_FIRST_DOWNSAMPLE)
+      {
+        d.sx /= 4;
+        d.sy /= 4;
+      }
+      if (i == LUM_RESULT)
+        ShdFinal.Apply();
+      else
+        ShdDownsample.Apply();
+      Rnd->DriverIterface->PSSetShaderResources(TEXTURE_SCREENSPACE_SLOT, 1, &LuminanceSRV[i - 1]);
+    }
+    else
+    {
+      ShdEvalLogLum.Apply();
+      Rnd->DriverIterface->PSSetShaderResources(TEXTURE_SCREENSPACE_SLOT, 1, &src);
+    }
+    d.sxInv = 1.0 / d.sx;
+    d.syInv = 1.0 / d.sy;
+    Rnd->DriverIterface->UpdateSubresource(ScreenSpaceConstBuf, 0, nullptr, &d, 0, 0);
+    Rnd->DriverIterface->VSSetConstantBuffers(CONST_BUF_SLOT_SCREENSPACE, 1, &ScreenSpaceConstBuf);
+    Rnd->DriverIterface->PSSetConstantBuffers(CONST_BUF_SLOT_SCREENSPACE, 1, &ScreenSpaceConstBuf);
+
+    quad.Draw(matr(), TRUE);
+  }
+}
+
+VOID Resize(INT w, INT h);
+
+
 /* Default constructor method
  *   ARGUMENTS:
  *     - window descriptor
@@ -23,6 +152,9 @@ ragl::render::render(HWND hwnd) : hWnd(hwnd), hDC(GetDC(hWnd)), Cam()
   GetClientRect(hWnd, &rc);
   UINT width = rc.right - rc.left;
   UINT height = rc.bottom - rc.top;
+
+  SX = width;
+  SY = height;
 
   UINT createDeviceFlags = 0;
 #ifdef _DEBUG
@@ -150,9 +282,49 @@ ragl::render::render(HWND hwnd) : hWnd(hwnd), hDC(GetDC(hWnd)), Cam()
     MessageBox(NULL, "Failed to init backbuf", "ERROR", MB_OK);
 
   hr = Driver->CreateRenderTargetView(pBackBuffer, nullptr, &RenderTargetView);
-  pBackBuffer->Release();
   if (FAILED(hr))
     MessageBox(NULL, "Failed to CreateRenderTargetView", "ERROR", MB_OK);
+
+  pBackBuffer->Release();
+
+  D3D11_TEXTURE2D_DESC textureDesc;
+  ZeroMemory(&textureDesc, sizeof(textureDesc));
+  textureDesc.Width = width;
+  textureDesc.Height = height;
+  textureDesc.MipLevels = 1;
+  textureDesc.ArraySize = 1;
+  textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+  textureDesc.SampleDesc.Count = 1;
+  textureDesc.Usage = D3D11_USAGE_DEFAULT;
+  textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+  textureDesc.CPUAccessFlags = 0;
+  textureDesc.MiscFlags = 0;
+
+  hr = Driver->CreateTexture2D(&textureDesc, nullptr, &ColorPassTex);
+  if (FAILED(hr))
+  {
+    MessageBox(NULL, "Failed to create ColorPassTex", "ERROR", MB_OK);
+    return;
+  }
+
+
+  D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+  shaderResourceViewDesc.Format = textureDesc.Format;
+  shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+  shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
+  shaderResourceViewDesc.Texture2D.MipLevels = 1;
+
+  Driver->CreateShaderResourceView(ColorPassTex, &shaderResourceViewDesc, &ColorPassShadResView);
+  if (FAILED(hr))
+  {
+    ColorPassTex->Release();
+    MessageBox(NULL, "Failed to create ColorPassShadResView", "ERROR", MB_OK);
+    return;
+  }
+  hr = Driver->CreateRenderTargetView(ColorPassTex, nullptr, &ColorPassRTView);
+  if (FAILED(hr))
+    MessageBox(NULL, "Failed to ColorPassRTView", "ERROR", MB_OK);
+
 
   // Create depth stencil texture
   D3D11_TEXTURE2D_DESC descDepth;
@@ -182,7 +354,7 @@ ragl::render::render(HWND hwnd) : hWnd(hwnd), hDC(GetDC(hWnd)), Cam()
   if (FAILED(hr))
     MessageBox(NULL, "Failed to Create DepthStencilView", "ERROR", MB_OK);
 
-  DriverIterface->OMSetRenderTargets(1, &RenderTargetView, DepthStencilView);
+  DriverIterface->OMSetRenderTargets(1, &ColorPassRTView, DepthStencilView);
 
   // Setup the viewport
   D3D11_VIEWPORT vp;
@@ -234,6 +406,11 @@ ragl::render::render(HWND hwnd) : hWnd(hwnd), hDC(GetDC(hWnd)), Cam()
 
   AddMaterial("default", color3(0.1, 0.3, 0.2), color3(0.9), color3(0.0), 30, 0,
     AddShader("shaders\\def"), NULL, NULL);
+
+  ShdTonemap = new shader("shaders\\tonemap");
+  ScreenQuad = new prim(topology::screenspace_quad());
+
+  SysMeasureLum = new measure_luminance_system(this);
 } /* End of default constructor method */
 
 /* Resize method
@@ -263,7 +440,7 @@ VOID ragl::render::Resize( INT w, INT h )
 VOID ragl::render::FrameStart( VOID )
 {
   float clearColor[] = { 0.3, 0.47, 0.8, 1.0 };
-  DriverIterface->ClearRenderTargetView(RenderTargetView, clearColor);
+  DriverIterface->ClearRenderTargetView(ColorPassRTView, clearColor);
   DriverIterface->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
   common_cb_data d;
@@ -277,6 +454,8 @@ VOID ragl::render::FrameStart( VOID )
   DriverIterface->PSSetConstantBuffers(CONST_BUF_SLOT_COMMON, 1, &CommonConstBuf);
 
   SetTransparency(FALSE);
+
+  DriverIterface->OMSetRenderTargets(1, &ColorPassRTView, DepthStencilView);
 } /* End of 'FrameStart' method */
 
 /* FrameCopy method
@@ -294,6 +473,18 @@ VOID ragl::render::FrameCopy( VOID )
  */
 VOID ragl::render::FrameEnd( VOID )
 {
+  SysMeasureLum->Draw(this, ColorPassShadResView);
+
+  DriverIterface->OMSetRenderTargets(1, &RenderTargetView, nullptr);
+  ShdTonemap->Apply();
+  DriverIterface->PSSetShaderResources(TEXTURE_CONSTANTS_SLOT, 1, &SysMeasureLum->LuminanceSRV[measure_luminance_system::LUM_RESULT]);
+  DriverIterface->PSSetShaderResources(TEXTURE_SCREENSPACE_SLOT, 1, &ColorPassShadResView);
+  ScreenQuad->Draw(matr(), TRUE);
+
+  // unbound
+/*  DriverIterface->OMSetRenderTargets(1, nullptr, nullptr);
+  DriverIterface->PSSetShaderResources(0, k_NUM_OF_SLOTS, nullptr);*/
+
   SwapChain->Present(0, 0);
 } /* End of 'FrameEnd' method */
 
@@ -306,8 +497,15 @@ ragl::render::~render( VOID )
   /* Delete OpenGL data */
   if (DriverIterface) DriverIterface->ClearState();
 
+  delete ShdTonemap;
+  delete SysMeasureLum;
+  delete ScreenQuad;
+
   if (DepthStencilTex) DepthStencilTex->Release();
   if (DepthStencilView) DepthStencilView->Release();
+  if (ColorPassRTView) ColorPassRTView->Release();
+  if (ColorPassShadResView) ColorPassShadResView->Release();
+  if (ColorPassTex) ColorPassTex->Release();
   if (RenderTargetView) RenderTargetView->Release();
   if (CommonConstBuf) CommonConstBuf->Release();
   if (BlendStateOpaqe) BlendStateOpaqe->Release();

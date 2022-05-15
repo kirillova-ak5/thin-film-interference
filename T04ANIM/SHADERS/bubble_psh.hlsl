@@ -55,25 +55,35 @@ float3 LookUp(float angle)
     float3(0.5, 0.0, 0.5),
     float3(0.0, 0.0, 0.0)
   };*/
-  float3 table[] = {
+  float3 tableSRC[] = {
   float3(0.0, 0.0, 0.0),
+  float3(0.011, 0.0, 0.0),
+  float3(0.2, 0.0, 0.0),
   float3(0.9, 0.0, 0.0),
   float3(0.8, 0.4, 0.0),
   float3(0.6, 0.8, 0.0),
-  float3(0.0, 0.8, 0.0),
+  float3(0.3, 0.8, 0.3),
   float3(0.0, 0.7, 0.8),
   float3(0.0, 0.2, 0.8),
   float3(0.3, 0.0, 0.4),
   float3(0.0, 0.0, 0.0)
   };
+  float3 table[] = {
+  float3(0.0, 0.0, 0.0),
+  tableSRC[3] + tableSRC[9],
+  tableSRC[3] + tableSRC[6],
+  tableSRC[7] + tableSRC[6],
+  float3(0.0, 0.0, 0.0)
+  };
   //angle -= PI / 16;
   //angle /= PI / 8;
   if (angle <= 0 || angle >= 1.0)
-    return table[0];
+    return float3(0.0, 0.0, 0.0);
 
-  angle *= 9; //table size
+  angle *= 5; //table size
   uint idx = uint(angle);
   float frac = angle - float(idx);
+  //frac = 0.0;
   return table[idx] * frac + table[idx - 1] * (1.0 - frac);
 
 }
@@ -107,13 +117,15 @@ float4 Shade2(float3 P, float3 N, float2 T)
   // Ambient
   color += Ka;
 
+  float nv = max(dot(V, N), 0.0);
+  coef = 1.0 - (1.0 - nv) * (1.0 - nv) * (1.0 - nv) * (1.0 - nv) * (1.0 - nv);
+  coef = coef * coef * coef * coef * coef;
   // for each light
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 1; i+=2)
   {
     L = Ls[i];
     float nl = max(dot(N, L), 0.0);
     float rl = max(dot(L, R), 0.0);
-    float nv = max(dot(V, N), 0.0);
     float3 F0 = lerp(float3(0.04, 0.04, 0.04), albedo, metallic);
     float3 FresnelSchlick = F0 + ((float3(1.0, 1.0, 1.0) - F0) * pow(1.0 - nv, 5.0));
     // todo attenuate
@@ -135,8 +147,6 @@ float4 Shade2(float3 P, float3 N, float2 T)
     color += (Diffuse + Specular) * nl / 3.0;
 
     // transp
-    coef = 1.0 - (1.0 - nv) * (1.0 - nv) * (1.0 - nv) * (1.0 - nv) * (1.0 - nv);
-    coef = coef * coef * coef * coef * coef;
     float tr = min(Trans * coef * 2.0, 1.0);
     //   return float4(tr.xxx, 1.0);
 
@@ -144,10 +154,16 @@ float4 Shade2(float3 P, float3 N, float2 T)
     if (inter.x > 0.01 || inter.y > 0.01 || inter.z > 0.01)
     {
       float mean = (inter.x + inter.y + inter.z) / 3.0;
-      coef *= 1.0 - 2.0 * mean;
+      coef -= sqrt(mean);
+      //return float4(mean.xxx, 1.0);
     }
-    color += inter;
+    //return float4(0, 0, 0, 1);
+    color += inter;// *(coef);
+    //color = inter * (coef);
   }
+  //return float4(coef.xxx, 1.0);
+
+  //return float4((Trans * (1.0 - coef)).xxx, 1.0);
   return float4(color, Trans * (1.0 - coef));
 }
 

@@ -80,7 +80,7 @@ VOID ragl::material::Apply( VOID )
 
  } /* End of 'ragl::material::Apply' function */
 
-HRESULT ragl::shader::CompileShaderFromFile(const CHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut)
+HRESULT ragl::shader::CompileShaderFromFile(const CHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut, const D3D_SHADER_MACRO* defines)
 {
   HRESULT hr = S_OK;
 
@@ -94,7 +94,7 @@ HRESULT ragl::shader::CompileShaderFromFile(const CHAR* szFileName, LPCSTR szEnt
   WCHAR fileName[300] = { 0 };
   MultiByteToWideChar(CP_UTF8, 0, szFileName, (int)strlen(szFileName), fileName, 300);
   
-  hr = D3DCompileFromFile(fileName, nullptr, nullptr, szEntryPoint, szShaderModel,
+  hr = D3DCompileFromFile(fileName, defines, nullptr, szEntryPoint, szShaderModel,
     dwShaderFlags, 0, ppBlobOut, &pErrorBlob);
   if (FAILED(hr))
   {
@@ -115,14 +115,14 @@ HRESULT ragl::shader::CompileShaderFromFile(const CHAR* szFileName, LPCSTR szEnt
 }
 
 
-ragl::shader::shader(const std::string& FileNamePrefix) : Name(FileNamePrefix)
+ragl::shader::shader(const std::string& FileNamePrefix, const D3D_SHADER_MACRO* defines) : Name(FileNamePrefix)
 {
   ragl::render* rnd = anim::GetAnim();
   // Compile the vertex shader
   ID3DBlob* pVSBlob = nullptr;
   std::string fullName = FileNamePrefix + PostfixVert;
 
-  HRESULT hr = CompileShaderFromFile(fullName.c_str(), "main", "vs_5_0", &pVSBlob);
+  HRESULT hr = CompileShaderFromFile(fullName.c_str(), "main", "vs_5_0", &pVSBlob, defines);
   if (FAILED(hr))
   {
     MessageBox(NULL, "Failed to compile vertex shader", "ERROR", MB_OK);
@@ -164,7 +164,7 @@ ragl::shader::shader(const std::string& FileNamePrefix) : Name(FileNamePrefix)
   // Compile the pixel shader
   fullName = FileNamePrefix + PostfixPix;
   ID3DBlob* pPSBlob = nullptr;
-  hr = CompileShaderFromFile(fullName.c_str(), "main", "ps_5_0", &pPSBlob);
+  hr = CompileShaderFromFile(fullName.c_str(), "main", "ps_5_0", &pPSBlob, defines);
   if (FAILED(hr))
   {
     MessageBox(NULL, "Failed to compile pixel shader", "ERROR", MB_OK);

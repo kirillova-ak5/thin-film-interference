@@ -7,7 +7,8 @@
 #include "bubble.h"
 
  /* Default contructor method */
-bubble::bubble(DBL radius, const vec& center, DBL thickness) : shape(pbr_material(color(0.7, 0.0, 0.8), 0.2, 0.95)), C(center), R(radius), T(thickness)
+bubble::bubble(DBL radius, const vec& center, DBL thickness) : shape(pbr_material(color(0.7, 0.0, 0.8), 0.2, 0.95)), C(center), R(radius), 
+T(thickness)
 {
   Color = color(0, 0, 243);
   S1 = sphere(R, C);
@@ -17,7 +18,7 @@ bubble::bubble(DBL radius, const vec& center, DBL thickness) : shape(pbr_materia
 
 DBL bubble::GetThick(VOID)
 {
-    return T;
+    return T * 1e4;
 }
 
 

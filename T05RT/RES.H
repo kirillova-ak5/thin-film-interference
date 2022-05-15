@@ -18,6 +18,27 @@ const DBL glass_refrac[5][2] =
     {670.8, 1.6431}
 };
 
+const DBL water_refrac[16][2] =
+{
+    {375, 1.341},
+    {400, 1.339},
+    {425, 1.338},
+    {450, 1.337},
+    {475, 1.336},
+    {500, 1.335},
+    {525, 1.334},
+    {550, 1.333},
+    {575, 1.333},
+    {600, 1.332},
+    {625, 1.332},
+    {650, 1.331},
+    {675, 1.331},
+    {700, 1.331},
+    {725, 1.330},
+    {750, 1.330}
+};
+
+
 const DBL _glass_refrac[8][2] =
 {
     {380.7, 1.8},
@@ -49,8 +70,8 @@ public:
       if (lambda <= glass_refrac[0][0])
           return glass_refrac[0][1];
       if (lambda >= glass_refrac[4][0])
-          return glass_refrac[7][1];
-      for (int i = 1; i < 8; i++)
+          return glass_refrac[4][1];
+      for (int i = 1; i < 16; i++)
           if (lambda <= glass_refrac[i][0] && lambda >= glass_refrac[i - 1][0])
           {
               double t = (glass_refrac[i][0] - lambda) / (glass_refrac[i][0] - glass_refrac[i - 1][0]);

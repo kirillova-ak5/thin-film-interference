@@ -92,7 +92,7 @@ namespace ragl
           std::istreambuf_iterator<char>());
       } /* End of 'LoadTextFile' function */
 
-      HRESULT CompileShaderFromFile(const CHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
+      HRESULT CompileShaderFromFile(const CHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut, const D3D_SHADER_MACRO* defines = nullptr);
 
       /* Shader name */
       const std::string PostfixVert = "_vsh.hlsl";
@@ -114,7 +114,7 @@ namespace ragl
        *   - texture file name prefix:
        *       const std::string &FileNamePrefix;
        */
-      shader(const std::string& FileNamePrefix);
+      shader(const std::string& FileNamePrefix, const D3D_SHADER_MACRO* defines = nullptr);
 
       /* Class destructor */
       ~shader(VOID)

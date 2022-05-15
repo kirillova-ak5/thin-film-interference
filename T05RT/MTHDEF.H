@@ -17,7 +17,7 @@ typedef float FLT;
 namespace mth
 {
   const DBL PI = 3.14159265358979323846;  /* PI constant*/
-  const DBL Threshold = 0.00001;
+  const DBL Threshold = 1e-13;
   const INT Infinity = 100000000;
 
 

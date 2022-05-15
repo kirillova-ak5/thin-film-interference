@@ -83,7 +83,7 @@ ragl::prim::~prim(VOID)
  * ARGUMENTS: None.
  * RETURNS: None.
  */
-VOID ragl::prim::Draw( const matr &World )
+VOID ragl::prim::Draw( const matr &World, BOOL ExplicitShader )
 {
   render *rnd = anim::GetAnim();
   transform tr;
@@ -98,11 +98,14 @@ VOID ragl::prim::Draw( const matr &World )
   rnd->GetDriverIterface()->UpdateSubresource(TransformConstBuf, 0, nullptr, &tr, 0, 0);
   rnd->GetDriverIterface()->VSSetConstantBuffers(CONST_BUF_SLOT_TRANSFORM, 1, &TransformConstBuf);
 
-  material *mtl = Mtl;
-  if (mtl == NULL)
-    mtl = rnd->Materials.Find("default");
-  assert(mtl != NULL);
-  mtl->Apply();
+  if (!ExplicitShader)
+  {
+    material* mtl = Mtl;
+    if (mtl == NULL)
+      mtl = rnd->Materials.Find("default");
+    assert(mtl != NULL);
+    mtl->Apply();
+  }
 
   /* Activete primitive vertex array */
   UINT stride = sizeof(VERTEX);

@@ -13,7 +13,7 @@ ragl::bubble::bubble(ragl::anim* Ani, const ragl::vec& position) : unit(),
   ragl::material* mtl = Ani->Materials.Find("bubble");
   if (mtl == NULL)
   {
-    mtl = Ani->AddMaterial("bubble", vec(0.05), vec(0.0, 0.8, 0.2), vec(0), 0, 0.3, Ani->AddShader("shaders\\bubble"));
+    mtl = Ani->AddMaterial("bubble", vec(0.05), vec(0.8), vec(0.0, 0.8, 0.2), 80, 1.0, Ani->AddShader("shaders\\bubble"));
   }
   sph.Mtl = mtl;
 

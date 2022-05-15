@@ -42,18 +42,30 @@ scene::scene(VOID) : BackGround(0.2, 0.6, 0.4), MaxRecource(8), CurrentRecource(
     Objects.push_back(new sphere(0.7, vec(2, 2, 0)));
     Objects.push_back(new sphere(1.3, vec(0, 0.4, 1.4)));
     //Objects.push_back(new sphere(0.5, vec(3.0, 2.5, 4.3)));
-    Objects.push_back(new bubble(0.5, vec(3.0, 2.5, 4.3), 0.014));
+//    Objects.push_back(new bubble(0.5, vec(3.0, 2.5, 4.3), 0.014));
+    Objects.push_back(new bubble(0.5, vec(3.0, 2.5, 4.3), 0.014 * 1e-4));
     Objects.back()->Mtl.Trans = 0.99;
     Objects.back()->Mtl.Envi.Refr = 2.6;
     Objects.back()->Mtl.Metallic = 0.03;
     Objects.back()->Mtl.Roughness = 0.01;
     Objects.back()->Mtl.Albedo = color(1.0);
+
+/*    Objects.push_back(new sphere(0.5, vec(3.0, 2.5, 4.3)));
+    Objects.back()->Mtl.Trans = 0.9;
+    Objects.back()->Mtl.Envi.Refr = 1.6;
+    Objects.back()->Mtl.Metallic = 0.1;
+    Objects.back()->Mtl.Roughness = 0.05;
+    Objects.back()->Mtl.Albedo = color(1.0);*/
+
+
+
     Objects.push_back(new box(vec(-1), vec(2)));
 
     // Objects.push_back(new triangle(vec(0, 0, 0), vec(0, 3, 0), vec(3, 0, 0)));
     //Objects.push_back(new grebaniy_tor(3, 0.7));
-    Lights.push_back(new point_light(vec(-5, 1, 5), color(1.0, 1.0, 1.0)));
-    Objects.push_back(new sphere(0.1, vec(-5, 1, 5)));
+//    Lights.push_back(new point_light(vec(-5, 1, 5), color(1.0, 1.0, 1.0)));
+    Lights.push_back(new point_light(vec(1, 3, 5), color(1.0, 1.0, 1.0)));
+    Objects.push_back(new sphere(0.1, vec(1, 3, 5)));
     Objects.back()->IsDebugObject = true;
 
     Objects.push_back(new sphere(0.2, vec(-2.4, 0.9, 4.1)));
@@ -71,7 +83,8 @@ scene::scene(VOID) : BackGround(0.2, 0.6, 0.4), MaxRecource(8), CurrentRecource(
     Objects.back()->Mtl.Roughness = 0.05;
     Objects.back()->Mtl.Albedo = color(1.0);*/
 
-    Lights.push_back(new point_light(vec(5, 8, -5), color(1.0, 1.0, 1.0)));
+//    Lights.push_back(new point_light(vec(5, 8, -5), color(1.0, 1.0, 1.0)));
+    Lights.push_back(new point_light(vec(5, 8, -3), color(1.0, 1.0, 1.0)));
     Objects.push_back(new sphere(0.1, vec(5, 8, -5)));
     Objects.back()->IsDebugObject = true;
 
@@ -232,8 +245,8 @@ double scene::Shade(const intr& In, const vec& Vec, const enviroment& Env, DBL W
                 vec T = vPar + vPer * eta;
                 T.Normalize();
 
-                DBL lambda_cm = Lambda * 1e-8;
-                DBL thick_cm = In.Object->GetThick() * 1e-4;
+                DBL lambda_cm = Lambda * 1e-7;
+                DBL thick_cm = In.Object->GetThick() * 1e-3;
                 ///          DBL reflecIntens = mth::LambdaIntencityFromRGB(/*(FresnelSchlick)*/color(1) * Trace(ray(In.P + Reflected * 10 * mth::Threshold, Reflected, Lambda), In.Object->Mtl.Envi, /*Weight*/1) * /*Weight*/1, Lambda)/* * 0.05*/;
                 DBL reflecIntens = Trace(ray(In.P + Reflected * 10 * mth::Threshold, Reflected, Lambda), In.Object->Mtl.Envi, /*Weight*/1);
                 DBL k = 2.0 * mth::PI / lambda_cm;

@@ -106,7 +106,7 @@ namespace ragl
      * ARGUMENTS: None.
      * RETURNS: None.
      */
-    VOID Draw( const matr &World );
+    VOID Draw( const matr &World, BOOL ExplicitShader = 0 );
   }; /* End of 'prim' class */
 
   /* Set of primitives class */
@@ -364,6 +364,14 @@ namespace ragl
           }
       } /* End of 'plane' function */
     }; /* End of 'plane' class */
+
+    class screenspace_quad : public plane
+    {
+    public:
+      screenspace_quad() : plane(vec(-1, -1, 0), vec(0, 2, 0), vec(2, 0, 0), 2, 2)
+      {
+      }
+    };
   } /* end of 'topology' namespace */
 } /* end of 'ragl' namespace */
 
