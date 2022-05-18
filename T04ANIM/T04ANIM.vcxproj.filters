@@ -116,6 +116,9 @@
     <ClInclude Include="U_BUBBLE.H">
       <Filter>Units</Filter>
     </ClInclude>
+    <ClInclude Include="U_RT_SCENE.H">
+      <Filter>Units</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MAIN.CPP" />
@@ -172,6 +175,9 @@
       <Filter>Units\Nature</Filter>
     </ClCompile>
     <ClCompile Include="U_BUBBLE.CPP">
+      <Filter>Units</Filter>
+    </ClCompile>
+    <ClCompile Include="U_RT_SCENE.CPP">
       <Filter>Units</Filter>
     </ClCompile>
   </ItemGroup>

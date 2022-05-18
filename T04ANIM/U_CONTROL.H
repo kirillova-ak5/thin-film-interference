@@ -21,7 +21,7 @@ namespace ragl
      *   - animation interface pointer:
      *       ragl::anim *Ani;
      */
-    control( ragl::anim *Ani );
+    control( ragl::anim *Ani, UINT preset = 0 );
 
     /* Interframe animation response method
      * ARGUMENT:

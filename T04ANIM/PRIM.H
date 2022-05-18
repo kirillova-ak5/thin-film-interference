@@ -99,6 +99,10 @@ namespace ragl
      */
     prim( const topology::base &T );
 
+    prim(VOID)
+    {
+    }
+
     /* Class destructor */
     ~prim( VOID );
 
@@ -329,6 +333,16 @@ namespace ragl
        */
       sphere( const vec &Center, FLT R, INT NewW = 50, INT NewH = 23 );
     }; /* End of 'sphere' class */
+
+    class box : public base
+    {
+    public:
+      box( VOID )
+      {
+      }
+
+      box( const vec &p1, const vec &p2 );
+    };
 
     /* Plane topology class */
     class plane : public grid

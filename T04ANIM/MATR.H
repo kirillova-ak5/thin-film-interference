@@ -561,7 +561,7 @@ namespace mth
   struct raw_matr
   {
     Type m[16];
-    raw_matr& operator=(const Type* s)
+    raw_matr& fromPtr(const Type* s)
     {
       memcpy(m, s, sizeof(Type) * 16);
       return *this;

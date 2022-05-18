@@ -444,8 +444,8 @@ VOID ragl::render::FrameStart( VOID )
   DriverIterface->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
   common_cb_data d;
-  d.MatrView = (float *)Cam.GetMatrView();
-  d.MatrProj = (float *)Cam.GetMatrProj();
+  d.MatrView.fromPtr((float *)Cam.GetMatrView());
+  d.MatrProj.fromPtr((float *)Cam.GetMatrProj());
   d.CamLoc = Cam.GetLoc();
   d.Time = anim::GetAnim()->GetTime();
 

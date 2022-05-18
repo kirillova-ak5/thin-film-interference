@@ -59,28 +59,31 @@ float3 LookUp(float angle)
   float3(0.0, 0.0, 0.0),
   float3(0.011, 0.0, 0.0),
   float3(0.2, 0.0, 0.0),
-  float3(0.9, 0.0, 0.0),
+  float3(0.4, 0.0, 0.0),
   float3(0.8, 0.4, 0.0),
   float3(0.6, 0.8, 0.0),
-  float3(0.3, 0.8, 0.3),
-  float3(0.0, 0.7, 0.8),
+  float3(0.1, 0.5, 0.3),
+  float3(0.0, 0.4, 0.5),
   float3(0.0, 0.2, 0.8),
-  float3(0.3, 0.0, 0.4),
+  float3(0.2, 0.0, 0.3),
   float3(0.0, 0.0, 0.0)
   };
   float3 table[] = {
   float3(0.0, 0.0, 0.0),
-  tableSRC[3] + tableSRC[9],
-  tableSRC[3] + tableSRC[6],
+  //tableSRC[7] + tableSRC[6],
   tableSRC[7] + tableSRC[6],
+  //tableSRC[3] + tableSRC[6],
+  tableSRC[3] + tableSRC[6],
+  //tableSRC[3] + tableSRC[9],
+  tableSRC[3] + tableSRC[9],
   float3(0.0, 0.0, 0.0)
   };
   //angle -= PI / 16;
   //angle /= PI / 8;
-  if (angle <= 0 || angle >= 1.0)
+  if (angle <= 0.5 || angle >= 1.0)
     return float3(0.0, 0.0, 0.0);
-
-  angle *= 5; //table size
+  angle -= 0.5;
+  angle *= 10; //table size
   uint idx = uint(angle);
   float frac = angle - float(idx);
   //frac = 0.0;
@@ -105,10 +108,12 @@ float4 Shade2(float3 P, float3 N, float2 T)
 
   float3 V = normalize(P - CamLoc);
   V = -V;
-  float3 LightPos = float3(10, 50, 50);
+//  float3 LightPos = float3(10, 50, 50);
+  float3 LightPos = float3(5, 8, -3);
   float3 LightColor = float(1).xxx;// float3(0.8, 1, 0.9);
   float LightDist = length(LightPos - P);
-  float3 Ls[] = { normalize(LightPos - P), normalize(float3(50, 50, 10) - P), normalize(float3(-50, 50, -50) - P) };//normalize(float3(-40, 50, -50)) };
+//  float3 Ls[] = { normalize(LightPos - P), normalize(float3(50, 50, 10) - P), normalize(float3(-50, 50, -50) - P) };//normalize(float3(-40, 50, -50)) };
+  float3 Ls[] = { normalize(LightPos - P), normalize(float3(-13, 1, 15) - P), normalize(float3(-50, 50, -50) - P) };//normalize(float3(-40, 50, -50)) };
   float3 L = normalize(LightPos - P);
   float3 R = normalize(reflect(V, N));
 
@@ -121,7 +126,7 @@ float4 Shade2(float3 P, float3 N, float2 T)
   coef = 1.0 - (1.0 - nv) * (1.0 - nv) * (1.0 - nv) * (1.0 - nv) * (1.0 - nv);
   coef = coef * coef * coef * coef * coef;
   // for each light
-  for (int i = 0; i < 1; i+=2)
+  for (int i = 0; i < 2; i++)
   {
     L = Ls[i];
     float nl = max(dot(N, L), 0.0);
@@ -158,7 +163,7 @@ float4 Shade2(float3 P, float3 N, float2 T)
       //return float4(mean.xxx, 1.0);
     }
     //return float4(0, 0, 0, 1);
-    color += inter;// *(coef);
+    color += inter / 10.0 * FresnelSchlick;// *(max(dot(Halfway, N), 0.0));
     //color = inter * (coef);
   }
   //return float4(coef.xxx, 1.0);

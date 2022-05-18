@@ -8,7 +8,7 @@
   *       ragl::anim *Ani;
   */
 ragl::bubble::bubble(ragl::anim* Ani, const ragl::vec& position) : unit(),
-  sph(topology::sphere::sphere(position, 0.5).EvalNormals())
+  sph(topology::sphere::sphere(position, 0.5))
 {
   ragl::material* mtl = Ani->Materials.Find("bubble");
   if (mtl == NULL)

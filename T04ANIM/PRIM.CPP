@@ -91,9 +91,9 @@ VOID ragl::prim::Draw( const matr &World, BOOL ExplicitShader )
   matr MatrWVP = MatrWorld * rnd->Cam.GetMatrVP();
   matr MatrWorldInvTrans = (!MatrWorld).MatrTranspose();
 
-  tr.MatrWorld = (float *)MatrWorld;
-  tr.MatrWVP = (float*)MatrWVP;
-  tr.MatrWorldInvTrans = (float*)MatrWorldInvTrans;
+  tr.MatrWorld.fromPtr((float *)MatrWorld);
+  tr.MatrWVP.fromPtr((float*)MatrWVP);
+  tr.MatrWorldInvTrans.fromPtr((float*)MatrWorldInvTrans);
 
   rnd->GetDriverIterface()->UpdateSubresource(TransformConstBuf, 0, nullptr, &tr, 0, 0);
   rnd->GetDriverIterface()->VSSetConstantBuffers(CONST_BUF_SLOT_TRANSFORM, 1, &TransformConstBuf);
@@ -495,5 +495,72 @@ ragl::topology::sphere::sphere( const vec &Center, FLT R, INT NewW, INT NewH ) :
       p->P = Center + p->N * R;
     }
 } /* End of constructor method */
+
+ragl::topology::box::box( const vec& p1, const vec& p2 )
+{
+  Type = prim::TRIMESH;
+  V.resize(24, prim::VERTEX(vec(0)));
+  FLT p1x = p1.GetX(), p1y = p1.GetY(), p1z = p1.GetZ();
+  FLT p2x = p2.GetX(), p2y = p2.GetY(), p2z = p2.GetZ();
+
+  prim::VERTEX vertices[] =
+  {
+      { vec(p1x, p2y, p1z), vec2(1.0f, 0.0f), vec(0.0f, 1.0f, 0.0f), color(0.0) },
+      { vec(p2x, p2y, p1z), vec2(0.0f, 0.0f), vec(0.0f, 1.0f, 0.0f), color(0.0) },
+      { vec(p2x, p2y, p2z), vec2(0.0f, 1.0f), vec(0.0f, 1.0f, 0.0f), color(0.0) },
+      { vec(p1x, p2y, p2z), vec2(1.0f, 1.0f), vec(0.0f, 1.0f, 0.0f), color(0.0) },
+
+      { vec(p1x, p1y, p1z), vec2(0.0f, 0.0f), vec(0.0f, -1.0f, 0.0f), color(0.0) },
+      { vec(p2x, p1y, p1z), vec2(1.0f, 0.0f), vec(0.0f, -1.0f, 0.0f), color(0.0) },
+      { vec(p2x, p1y, p2z), vec2(1.0f, 1.0f), vec(0.0f, -1.0f, 0.0f), color(0.0) },
+      { vec(p1x, p1y, p2z), vec2(0.0f, 1.0f), vec(0.0f, -1.0f, 0.0f), color(0.0) },
+
+      { vec(p1x, p1y, p2z), vec2(0.0f, 1.0f), vec(-1.0f, 0.0f, 0.0f), color(0.0) },
+      { vec(p1x, p1y, p1z), vec2(1.0f, 1.0f), vec(-1.0f, 0.0f, 0.0f), color(0.0) },
+      { vec(p1x, p2y, p1z), vec2(1.0f, 0.0f), vec(-1.0f, 0.0f, 0.0f), color(0.0) },
+      { vec(p1x, p2y, p2z), vec2(0.0f, 0.0f), vec(-1.0f, 0.0f, 0.0f), color(0.0) },
+
+      { vec(p2x, p1y, p2z), vec2(1.0f, 1.0f), vec(1.0f, 0.0f, 0.0f), color(0.0) },
+      { vec(p2x, p1y, p1z), vec2(0.0f, 1.0f), vec(1.0f, 0.0f, 0.0f), color(0.0) },
+      { vec(p2x, p2y, p1z), vec2(0.0f, 0.0f), vec(1.0f, 0.0f, 0.0f), color(0.0) },
+      { vec(p2x, p2y, p2z), vec2(1.0f, 0.0f), vec(1.0f, 0.0f, 0.0f), color(0.0) },
+
+      { vec(p1x, p1y, p1z), vec2(0.0f, 1.0f), vec(0.0f, 0.0f, -1.0f), color(0.0) },
+      { vec(p2x, p1y, p1z), vec2(1.0f, 1.0f), vec(0.0f, 0.0f, -1.0f), color(0.0) },
+      { vec(p2x, p2y, p1z), vec2(1.0f, 0.0f), vec(0.0f, 0.0f, -1.0f), color(0.0) },
+      { vec(p1x, p2y, p1z), vec2(0.0f, 0.0f), vec(0.0f, 0.0f, -1.0f), color(0.0) },
+
+      { vec(p1x, p1y, p2z), vec2(1.0f, 1.0f), vec(0.0f, 0.0f, 1.0f), color(0.0f) },
+      { vec(p2x, p1y, p2z), vec2(0.0f, 1.0f), vec(0.0f, 0.0f, 1.0f), color(0.0f) },
+      { vec(p2x, p2y, p2z), vec2(0.0f, 0.0f), vec(0.0f, 0.0f, 1.0f), color(0.0f) },
+      { vec(p1x, p2y, p2z), vec2(1.0f, 0.0f), vec(0.0f, 0.0f, 1.0f), color(0.0f) }
+  };
+  V.assign(vertices, vertices + 24);
+
+  INT indices[] =
+  {
+      3,0,1,
+      2,3,1,
+
+      6,5,4,
+      7,6,4,
+
+      11,8,9,
+      10,11,9,
+
+      14,13,12,
+      15,14,12,
+
+      19,16,17,
+      18,19,17,
+
+      22,21,20,
+      23,22,20
+  };
+  I.resize(36);
+  I.assign(indices, indices + 36);
+
+}
+
 
 /* END OF 'PRIM.CPP' FILE */

@@ -10,6 +10,7 @@
 #include "u_house.h"
 #include "u_sky.h"
 #include "U_BUBBLE.H"
+#include "U_RT_SCENE.H"
 #include "anim.h"
 
 /* Class constructor.
@@ -17,14 +18,23 @@
  *   - animation interface pointer:
  *       ragl::anim *Ani;
  */
-ragl::control::control( ragl::anim *Ani ) : unit()
+ragl::control::control( ragl::anim *Ani, UINT preset ) : unit()
 {
   srand(Ani->GetGlobalTime());
-  Ani->Cam.SetView(ragl::vec(30, 0.8, 15), ragl::vec(3, 0.8, 3));
-  *Ani << new ground(Ani);
-///  *Ani << new sky(Ani);
-  *Ani << new house(Ani, vec(0), "Building_A08.g3dm");
-  *Ani << new bubble(Ani, vec(3, 1, 3));
+  if (preset == 0)
+  {
+    Ani->Cam.SetView(ragl::vec(30, 0.8, 15), ragl::vec(3, 0.8, 3));
+    *Ani << new ground(Ani);
+    //  *Ani << new sky(Ani);
+    *Ani << new house(Ani, vec(0), "Building_A08.g3dm");
+    *Ani << new bubble(Ani, vec(3, 1, 3));
+  }
+  else
+  {
+    Ani->Cam.SetView(ragl::vec(5, 3, 8), ragl::vec(3.0, 2.5, 4.3));
+    *Ani << new rt_scene(Ani);
+    *Ani << new bubble(Ani, vec(3.0, 2.5, 4.3));
+  }
 } /* End of constructor method */
 
 /* Interframe animation response method
@@ -79,7 +89,7 @@ VOID ragl::control::Response( ragl::anim *Ani )
       TimeShift = Ani->GetTime();
       jumpCounter--;
     }
-    L = vec(L.GetX(), 1.8 - pow(((FLT)(jumpCounter - 4) / 4), 2), L.GetZ());
+    //L = vec(L.GetX(), 1.8 - pow(((FLT)(jumpCounter - 4) / 4), 2), L.GetZ());
   }
   /* Move camera */
   ///3 * (FLT)Ani->GetDeltaCoord('Z') / 500
