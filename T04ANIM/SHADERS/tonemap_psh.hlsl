@@ -39,5 +39,5 @@ float4 main(PS_INPUT input) : SV_Target
   float3 whiteScale = float3(1, 1, 1) / Uncharted2Tonemap(WH);
   rez = float4(pow(cur * whiteScale, 1.0 / 2.2), 1.0);
 
-  return src;
+  return rez;
 }

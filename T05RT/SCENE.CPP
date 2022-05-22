@@ -208,7 +208,7 @@ double scene::Shade(const intr& In, const vec& Vec, const enviroment& Env, DBL W
     Reflected.Normalize();
     /* Ambient illumination */
    // Col += color(0.05);
-    intens += 0.00001;
+ ///   intens += 0.00001;
     /* Diffuze & Specular illumination */
   /*  if (dynamic_cast<box*>(In.Object) && Weight == 1.0 && Lambda < 450.0)
         return 0.01;*/
@@ -224,7 +224,7 @@ double scene::Shade(const intr& In, const vec& Vec, const enviroment& Env, DBL W
         DBL LightDist = l->Get(In.P, &ToLight);
         DBL Attenuated = l->Att.Apply(LightDist);
         /* Shadows */
-        intr ShadI;
+        /*intr ShadI;
         if (Intersect(ray(In.P + ToLight * mth::Threshold, ToLight), ShadI))
             if (LightDist == mth::Infinity || LightDist + mth::Threshold > ShadI.T)
                 if (ShadI.Object->Mtl.Trans < 0.1)

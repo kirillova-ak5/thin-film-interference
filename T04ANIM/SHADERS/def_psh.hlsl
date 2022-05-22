@@ -86,8 +86,8 @@ float3 Shade2(float3 P, float3 N, float2 T)
     albedo = (Texture0.Sample(Sampler0, T)) * 1.2 + 0.05 * albedo;
 
   float3 rTemp = float3(1.0, 1.0, 1.0) - Ks;
-  float roughness = min((rTemp.x + rTemp.y + rTemp.z) / 2.0, 0.99);
-  float metallic = min((Ph + 20) / 100.0, 0.99);
+  float roughness = min((rTemp.x + rTemp.y + rTemp.z) / 2.0, 0.99); // TO CHECK
+  float metallic = min((Ph + 20) / 100.0, 0.99);                    // TO CHECK
 
   float3 V = normalize(P - CamLoc);
   V = -V;
@@ -96,19 +96,23 @@ float3 Shade2(float3 P, float3 N, float2 T)
   float3 LightColor = float(1).xxx;// float3(0.8, 1, 0.9);
   float LightDist = length(LightPos - P);
 //  float3 Ls[] = { normalize(LightPos - P), normalize(float3(50, 50, 10) - P), normalize(float3(-50, 50, -50) - P) };//normalize(float3(-40, 50, -50)) };
-  float3 Ls[] = { normalize(LightPos - P), normalize(float3(-3, 3, 5) - P), normalize(float3(-50, 50, -50) - P) };//normalize(float3(-40, 50, -50)) };
+  float3 LightPoss[] = { float3(5, 8, -3), float3(1, 3, 5) };
+  float3 Ls[] = { normalize(LightPos - P), normalize(float3(1, 3, 5) - P), normalize(float3(-50, 50, -50) - P) };//normalize(float3(-40, 50, -50)) };
   float3 L = normalize(LightPos - P);
   float3 R = normalize(reflect(V, N));
 
   // Ambient
-  color += Ka;
+  //color += Ka;
 
   // for each light
   for (int i = 0; i < 2; i++)
   {
     L = Ls[i];
+    float lDist = length(LightPoss[i] - P);
+    float atten = 1.0 / (1.0 + 0.03 * lDist + 0.001 * lDist * lDist);
     float nv = max(dot(V, N), 0.0);
     float nl = max(dot(N, L), 0.0);
+//    return nv.xxx;
     float3 F0 = lerp(float3(0.04, 0.04, 0.04), albedo, metallic);
     float3 FresnelSchlick = F0 + ((float3(1.0, 1.0, 1.0) - F0) * pow(1.0 - nv, 5.0));
     // todo attenuate
@@ -126,7 +130,7 @@ float3 Shade2(float3 P, float3 N, float2 T)
     float3 KDiffuse = float3(1.0, 1.0, 1.0) - FresnelSchlick;
     float3 Diffuse = albedo * (1.0 - metallic) * KDiffuse * (1.0 / PI);
 
-    color += (Diffuse + Specular) * nl;// / 3.0;
+    color += (Diffuse + Specular) * nl * atten;// / 3.0;
     //color += F0 / 3.0;
   }
 

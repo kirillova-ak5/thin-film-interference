@@ -485,13 +485,19 @@ namespace mth
         700.0
     };
 
-    const double MODEL_RGB_WAVELENGTH[] =//bgr actually
+    const double MODEL_RGB_WAVELENGTH3[] =//bgr actually
     {
         435.0,
         532.0,
         630.0
     };
 
+    const double MODEL_RGB_WAVELENGTH[] =//bgr actually
+    {
+        425.0,
+        532.0,
+        640.0
+    };
 
     template <class type>
     color<type> color<type>::FromIntensities(double *intensities, double *lambdas, int numOfIntensities)
