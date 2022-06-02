@@ -7,6 +7,7 @@
 #ifndef __RENDER_H_
 #define __RENDER_H_
 
+#include <chrono>
 #include "DEF.H"
 #include "CAMERA.H"
 #include "RES.H"
@@ -63,6 +64,11 @@ namespace ragl
     D3D_DRIVER_TYPE DriverType = D3D_DRIVER_TYPE_NULL;
     D3D_FEATURE_LEVEL FeatureLevel = D3D_FEATURE_LEVEL_11_0;
     ID3D11BlendState* BlendStateOpaqe = nullptr, * BlendStateTransparent = nullptr;
+    ID3D11Query* TimeQuery = nullptr;
+    BOOL timed = false;
+    std::chrono::high_resolution_clock::time_point t;
+    UINT FrameNum = 0;
+    long double duration = 0;
 
     struct measure_luminance_system
     {
@@ -167,6 +173,7 @@ namespace ragl
 
     ID3D11Device* GetDriver( VOID ) { return Driver; }
     ID3D11DeviceContext* GetDriverIterface(VOID) { return DriverIterface; }
+    ID3D11Query* GetTimeQuery(VOID) { return TimeQuery; }
 
     /* Create shader function.
      * ARGUMENTS:

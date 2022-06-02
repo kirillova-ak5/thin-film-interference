@@ -32,7 +32,7 @@ DBL bubble::GetThick(VOID)
  *     - is sect
  *         BOOL;
  */
-#pragma optimize("", off)
+//#pragma optimize("", off)
 BOOL bubble::Intersect(const ray& Ray, intr* Intr)
 {
   intr I1, I2;
@@ -64,6 +64,6 @@ BOOL bubble::Intersect(const ray& Ray, intr* Intr)
   Intr->Set(this, t, n, Ray.Org + Ray.Dir * t, !IsInside);
   return true;
 } /* End of 'Intersect' method */
-#pragma optimize("", on)
+//#pragma optimize("", on)
 
 /* END OF 'SPHERE.CPP' FILE */

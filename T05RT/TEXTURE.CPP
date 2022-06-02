@@ -10,7 +10,7 @@ color pow(color c, DBL d)
     return S;
 }
 
-#pragma optimize("", off)
+//#pragma optimize("", off)
 VOID texture::Tonemap(VOID)
 {
     DBL sum = 0.0, meanLum, key, expo;
@@ -30,4 +30,4 @@ VOID texture::Tonemap(VOID)
             Texture[y * W + x] = pow(cur * whiteScale, 1.0 / 2.2);
         }
 }
-#pragma optimize("", on)
+//#pragma optimize("", on)

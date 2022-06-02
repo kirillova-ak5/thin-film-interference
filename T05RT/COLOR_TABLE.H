@@ -4,10 +4,11 @@
 #include "mthdef.h"
 #include "COLOR.H"
 
+//#pragma optimize("", off)
 namespace mth
 {
     const int COLOR_MATCH_LAMBDA_START = 380;
-    const int COLOR_MATCH_LAMBDA_END = 750;// 815;
+    const int COLOR_MATCH_LAMBDA_END = 710;// 815;
 
 
     enum color_matching_func
@@ -492,11 +493,18 @@ namespace mth
         630.0
     };
 
-    const double MODEL_RGB_WAVELENGTH[] =//bgr actually
+    const double MODEL_RGB_WAVELENGTH4[] =//bgr actually
     {
         425.0,
         532.0,
         640.0
+    };
+
+    const double MODEL_RGB_WAVELENGTH[] =//bgr actually
+    {
+        430.0,
+        540.0,
+        630.0
     };
 
     template <class type>
@@ -555,7 +563,7 @@ namespace mth
     template <class type>
     rgb_intensities IntensitiesFromRGB(color<type> c)
     {
-        rgb_intensities i;
+        volatile rgb_intensities i;
         i.lambdas[0] = MODEL_RGB_WAVELENGTH[0];
         i.lambdas[1] = MODEL_RGB_WAVELENGTH[1];
         i.lambdas[2] = MODEL_RGB_WAVELENGTH[2];
@@ -588,7 +596,10 @@ namespace mth
         i.intensities[0] = i.intensities[0] < 0 ? 0 : i.intensities[0];
         i.intensities[1] = i.intensities[1] < 0 ? 0 : i.intensities[1];
         i.intensities[2] = i.intensities[2] < 0 ? 0 : i.intensities[2];
-        return i;
+        rgb_intensities tmp = {
+          i.intensities[0], i.intensities[1], i.intensities[2],
+          i.lambdas[0], i.lambdas[1], i.lambdas[2] };
+        return tmp;
     }
 
     template <class type>
@@ -610,34 +621,40 @@ namespace mth
         else
             return i.intensities[2];
     }
-
     template <class type>
     double LambdaIntencityFromRGB(color<type> c, double l)
     {
         rgb_intensities i = IntensitiesFromRGB(c);
+        const double coeff = 0.1;
         if (l < i.lambdas[0])
         {
             double d = (l - COLOR_MATCH_LAMBDA_START) / (i.lambdas[0] - COLOR_MATCH_LAMBDA_START);
+            if (d >= coeff && d < 1 - coeff)
+              return 0;
             return d * i.intensities[0];
         }
         if (l < i.lambdas[1])
         {
             double d = (l - i.lambdas[0]) / (i.lambdas[1] - i.lambdas[0]);
+            if (d >= coeff && d < 1 - coeff)
+              return 0;
             return (1.0 - d) * i.intensities[0] + d * i.intensities[1];
         }
         if (l < i.lambdas[2])
         {
             double d = (l - i.lambdas[1]) / (i.lambdas[2] - i.lambdas[1]);
+            if (d >= coeff && d < 1 - coeff)
+              return 0;
             return (1.0 - d) * i.intensities[1] + d * i.intensities[2];
         }
         else
         {
             double d = (l - i.lambdas[2]) / (COLOR_MATCH_LAMBDA_END - i.lambdas[2]);
+            if (d >= coeff && d < 1 - coeff)
+              return 0;
             return (1.0 - d) * i.intensities[2];
         }
-
     }
-
 
 
     template <class type>
@@ -646,6 +663,7 @@ namespace mth
         return 0.2126 * col.R + 0.7152 * col.G + 0.0722 * col.B;
     }
 }
+//#pragma optimize("", on)
 
 #endif // !__COLOR_TABLE_H_
 

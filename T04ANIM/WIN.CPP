@@ -111,7 +111,7 @@ ragl::win::win( HINSTANCE hInst ) : hInstance(hInst), IsFullScreen(FALSE), Mouse
   /* Create window */
   hWnd = CreateWindow("My WindowClass", "Feels bad man",
     WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-    CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+    0, 0, 1920, 1080,
     NULL, NULL, hInstance, (VOID *)this);
 } /* End of default constructor */
 
@@ -305,7 +305,7 @@ VOID ragl::win::OnTimer( INT Id )
   if (!IsInit)
   {
     KillTimer(hWnd, InitTimerID);
-    SetTimer(hWnd, RefreshTimerID, 0, NULL);
+    //SetTimer(hWnd, RefreshTimerID, 0, NULL);
     IsInit = TRUE;
     Init();
     Resize();

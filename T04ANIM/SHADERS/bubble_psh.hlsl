@@ -71,11 +71,11 @@ float3 LookUp(float angle)
   float3 table[] = {
   float3(0.0, 0.0, 0.0),
   //tableSRC[7] + tableSRC[6],
-  tableSRC[7] + tableSRC[6],
+  float3(0.0, 0.7, 0.8),
   //tableSRC[3] + tableSRC[6],
-  tableSRC[3] + tableSRC[6],
+  float3(0.5, 0.9, 0.0),
   //tableSRC[3] + tableSRC[9],
-  tableSRC[3] + tableSRC[9],
+  float3(0.8, 0.0, 0.7),
   float3(0.0, 0.0, 0.0)
   };
   //angle -= PI / 16;
@@ -113,7 +113,7 @@ float4 Shade2(float3 P, float3 N, float2 T)
   float3 LightColor = float(1).xxx;// float3(0.8, 1, 0.9);
   float LightDist = length(LightPos - P);
 //  float3 Ls[] = { normalize(LightPos - P), normalize(float3(50, 50, 10) - P), normalize(float3(-50, 50, -50) - P) };//normalize(float3(-40, 50, -50)) };
-  float3 Ls[] = { normalize(LightPos - P), normalize(float3(-13, 1, 15) - P), normalize(float3(-50, 50, -50) - P) };//normalize(float3(-40, 50, -50)) };
+  float3 Ls[] = { normalize(LightPos - P), normalize(float3(1, 3, 5) - P), normalize(float3(-50, 50, -50) - P) };//normalize(float3(-40, 50, -50)) };
   float3 L = normalize(LightPos - P);
   float3 R = normalize(reflect(V, N));
 
@@ -123,8 +123,8 @@ float4 Shade2(float3 P, float3 N, float2 T)
   color += Ka;
 
   float nv = max(dot(V, N), 0.0);
-  coef = 1.0 - (1.0 - nv) * (1.0 - nv) * (1.0 - nv) * (1.0 - nv) * (1.0 - nv);
-  coef = coef * coef * coef * coef * coef;
+  coef = 1.0 - (1.0 - nv) * (1.0 - nv) * (1.0 - nv);
+  coef = coef * coef * coef;
   // for each light
   for (int i = 0; i < 2; i++)
   {
@@ -156,14 +156,15 @@ float4 Shade2(float3 P, float3 N, float2 T)
     //   return float4(tr.xxx, 1.0);
 
     float3 inter = LookUp(max(dot(Halfway, N), 0.0));
-    if (inter.x > 0.01 || inter.y > 0.01 || inter.z > 0.01)
+    if (inter.x > 0.001 || inter.y > 0.001 || inter.z > 0.001)
     {
       float mean = (inter.x + inter.y + inter.z) / 3.0;
-      coef -= sqrt(mean);
-      //return float4(mean.xxx, 1.0);
+
+      //coef -= sqrt(mean / 5.0);
+      //return float4(mean.xxx * (1-coef.xxx), 1.0);
     }
     //return float4(0, 0, 0, 1);
-    color += inter / 10.0 * FresnelSchlick;// *(max(dot(Halfway, N), 0.0));
+    color += inter / 8.0 * FresnelSchlick;// *(max(dot(Halfway, N), 0.0));
     //color = inter * (coef);
   }
   //return float4(coef.xxx, 1.0);

@@ -27,7 +27,7 @@ ragl::control::control( ragl::anim *Ani, UINT preset ) : unit()
     *Ani << new ground(Ani);
     //  *Ani << new sky(Ani);
     *Ani << new house(Ani, vec(0), "Building_A08.g3dm");
-    *Ani << new bubble(Ani, vec(3, 1, 3));
+    *Ani << new bubble(Ani, vec(3, 0.5, 3));
   }
   else
   {

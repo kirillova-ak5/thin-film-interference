@@ -113,7 +113,7 @@ win::win( HINSTANCE hInst ) : hInstance(hInst), IsFullScreen(FALSE), MouseWheel(
   /* Create window */
   hWnd = CreateWindow("My WindowClass", "Feels bad man",
     WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-    CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+    -8, -31, 1920, 1080,
     NULL, NULL, hInstance, (VOID *)this);
 
 } /* End of default constructor */

@@ -51,7 +51,7 @@ float4 main(PS_INPUT input) : SV_Target
   tcoord.x = 0;
   tcoord.y = 0;
   tcoord.z = 0;
-
+  //return 2.2;
   for (int dx = 0; dx < sx; dx++)
     for (int dy = 0; dy < sy; dy++)
     {

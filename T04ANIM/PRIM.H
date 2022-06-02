@@ -110,7 +110,7 @@ namespace ragl
      * ARGUMENTS: None.
      * RETURNS: None.
      */
-    VOID Draw( const matr &World, BOOL ExplicitShader = 0 );
+    VOID Draw( const matr &World, BOOL ExplicitShader = 0, BOOL MeasureTime = 0 );
   }; /* End of 'prim' class */
 
   /* Set of primitives class */

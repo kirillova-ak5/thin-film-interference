@@ -83,7 +83,7 @@ ragl::prim::~prim(VOID)
  * ARGUMENTS: None.
  * RETURNS: None.
  */
-VOID ragl::prim::Draw( const matr &World, BOOL ExplicitShader )
+VOID ragl::prim::Draw( const matr &World, BOOL ExplicitShader, BOOL MeasureTime )
 {
   render *rnd = anim::GetAnim();
   transform tr;
@@ -115,7 +115,6 @@ VOID ragl::prim::Draw( const matr &World, BOOL ExplicitShader )
   rnd->GetDriverIterface()->IASetPrimitiveTopology(Type == TRIMESH ? D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST : D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
   rnd->GetDriverIterface()->DrawIndexed(NumOfElements, 0, 0);
-
 } /* End of 'Draw' method */
 
 /****************************/

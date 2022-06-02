@@ -403,6 +403,22 @@ ragl::render::render(HWND hwnd) : hWnd(hwnd), hDC(GetDC(hWnd)), Cam()
     MessageBox(NULL, "Failed to create BlendStateTransparent", "ERROR", MB_OK);
   }
 
+  D3D11_QUERY_DESC qd;
+  qd.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;
+  qd.MiscFlags = 0;
+  hr = Driver->CreateQuery(&qd, &TimeQuery);
+  if (FAILED(hr))
+  {
+    MessageBox(NULL, "Failed to create TimeQuery", "ERROR", MB_OK);
+  }
+  qd.Query = D3D11_QUERY_TIMESTAMP;
+  qd.MiscFlags = 0;
+  hr = Driver->CreateQuery(&qd, &TimeQuery);
+  if (FAILED(hr))
+  {
+    MessageBox(NULL, "Failed to create TimeQuery", "ERROR", MB_OK);
+  }
+
 
   AddMaterial("default", color3(0.1, 0.3, 0.2), color3(0.9), color3(0.0), 30, 0,
     AddShader("shaders\\def"), NULL, NULL);
@@ -486,6 +502,24 @@ VOID ragl::render::FrameEnd( VOID )
   DriverIterface->PSSetShaderResources(0, k_NUM_OF_SLOTS, nullptr);*/
 
   SwapChain->Present(0, 0);
+
+  std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+  if (timed)
+  {
+    std::chrono::duration<double, std::milli> time_span = std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(t1 - t);
+    duration += time_span.count();
+  }
+  t = t1;
+  timed = true;
+  FrameNum++;
+  if (FrameNum == 10000)
+  {
+    char buf[30];
+    sprintf(buf, "TIME %lf\n", duration / 10000.0);
+    OutputDebugString(buf);
+    FrameNum = 0;
+    duration = 0;
+  }
 } /* End of 'FrameEnd' method */
 
 /* Destructor method

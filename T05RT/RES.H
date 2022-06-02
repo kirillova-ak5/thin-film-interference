@@ -57,6 +57,7 @@ class enviroment
 {
 public:
   DBL Refr, Decay;       // Refractoin and dacay caef
+  DBL refrac[5][2];
 
   /* Default constructor method */
   enviroment( VOID );
