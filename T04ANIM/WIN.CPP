@@ -111,7 +111,7 @@ ragl::win::win( HINSTANCE hInst ) : hInstance(hInst), IsFullScreen(FALSE), Mouse
   /* Create window */
   hWnd = CreateWindow("My WindowClass", "Feels bad man",
     WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-    0, 0, 1920, 1080,
+    -8, -31, 1920, 1080,
     NULL, NULL, hInstance, (VOID *)this);
 } /* End of default constructor */
 
