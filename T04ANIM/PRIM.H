@@ -250,7 +250,7 @@ namespace ragl
        * ARGUMENTS: None.
        * RETURNS: None.
        */
-      VOID EvalNormals( VOID );
+      trimesh& EvalNormals( VOID );
     }; /* End of 'trimesh' class */
 
     /* Grid topology class */

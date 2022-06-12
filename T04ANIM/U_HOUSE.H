@@ -17,7 +17,9 @@ namespace ragl
   public:
     /* Unit position */
     vec Pos[5];
-    ragl::primitives sph;
+    DBL LastUpdTime;
+    ragl::primitives sph, trees;
+    std::vector<ragl::prim*> bubbles;
     std::string FileName;
 
     /* Class constructor.

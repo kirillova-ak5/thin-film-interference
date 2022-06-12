@@ -370,7 +370,7 @@ ragl::topology::trimesh::trimesh( const std::vector<prim::VERTEX> &NewV,
  * ARGUMENTS: None.
  * RETURNS: None.
  */
-VOID ragl::topology::trimesh::EvalNormals( VOID )
+ragl::topology::trimesh& ragl::topology::trimesh::EvalNormals( VOID )
 {
   /* Set to zero all normals */
   for (auto &v : V)
@@ -392,6 +392,7 @@ VOID ragl::topology::trimesh::EvalNormals( VOID )
   /* Normalize all normals */
   for (auto &v : V)
     v.N.Normalize();
+  return *this;
 
 } /* End of 'EvalNormals' method */
 

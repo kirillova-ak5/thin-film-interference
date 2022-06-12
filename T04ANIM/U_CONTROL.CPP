@@ -23,9 +23,10 @@ ragl::control::control( ragl::anim *Ani, UINT preset ) : unit()
   srand(Ani->GetGlobalTime());
   if (preset == 0)
   {
-    Ani->Cam.SetView(ragl::vec(30, 0.8, 15), ragl::vec(3, 0.8, 3));
+    Ani->Cam.SetView(ragl::vec(30, 1.8, 15), ragl::vec(3, 0.8, 3));
     *Ani << new ground(Ani);
     //  *Ani << new sky(Ani);
+ //   *Ani << new house(Ani, vec(0), "Building_A08.g3dm");
     *Ani << new house(Ani, vec(0), "Building_A08.g3dm");
     *Ani << new bubble(Ani, vec(3, 0.5, 3));
   }
@@ -33,7 +34,11 @@ ragl::control::control( ragl::anim *Ani, UINT preset ) : unit()
   {
     Ani->Cam.SetView(ragl::vec(5, 3, 8), ragl::vec(3.0, 2.5, 4.3));
     *Ani << new rt_scene(Ani);
+ //   for (int i = 0; i < 10000; i++)
     *Ani << new bubble(Ani, vec(3.0, 2.5, 4.3));
+    *Ani << new bubble(Ani, vec(0.0, 2.5, 5.0));
+    *Ani << new bubble(Ani, vec(4.0, 4.5, 1.3));
+    *Ani << new bubble(Ani, vec(5.0, 2.5, 2.3));
   }
 } /* End of constructor method */
 

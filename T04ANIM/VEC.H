@@ -92,7 +92,10 @@ namespace mth
           l = 1;
         return vec2(X / l, Z / l);
       } /* End of prefix operator! method */
-
+      bool operator==(const vec2& ot)
+      {
+        return X == ot.X && Z == ot.Z;
+      }
       /* Prefix operator- method 
        *   ARGUMENTS: none.
        *   RETURNS  : 

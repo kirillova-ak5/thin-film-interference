@@ -50,12 +50,45 @@ scene::scene(VOID) : BackGround(0.2, 0.6, 0.4), MaxRecource(8), CurrentRecource(
     Objects.push_back(new sphere(1.3, vec(0, 0.4, 1.4)));
     //Objects.push_back(new sphere(0.5, vec(3.0, 2.5, 4.3)));
 //    Objects.push_back(new bubble(0.5, vec(3.0, 2.5, 4.3), 0.014));
-     Objects.push_back(new bubble(0.5, vec(3.0, 2.5, 4.3), 0.014 * 1e-4));
-    Objects.back()->Mtl.Trans = 0.99;
-    Objects.back()->Mtl.Envi.Refr = 2.6;
-    Objects.back()->Mtl.Metallic = 0.03;
-    Objects.back()->Mtl.Roughness = 0.01;
-    Objects.back()->Mtl.Albedo = color(1.0);
+
+    pbr_material bubbleMtl;
+    bubbleMtl.Trans = 0.99;
+    bubbleMtl.Envi.Refr = 2.6;
+    bubbleMtl.Metallic = 0.03;
+    bubbleMtl.Roughness = 0.01;
+    bubbleMtl.Albedo = color(1.0);
+
+    Objects.push_back(new bubble(0.5, vec(3.0, 2.5, 4.3), 0.014 * 1e-4));
+    Objects.back()->Mtl = bubbleMtl;
+
+    Objects.push_back(new bubble(0.5, vec(0.0, 2.5, 5.0), 0.014 * 1e-4));
+    Objects.back()->Mtl = bubbleMtl;
+
+    Objects.push_back(new bubble(0.5, vec(4.0, 4.5, 1.3), 0.014 * 1e-4));
+    Objects.back()->Mtl = bubbleMtl;
+
+    Objects.push_back(new bubble(0.5, vec(5.0, 2.5, 2.3), 0.014 * 1e-4));
+    Objects.back()->Mtl = bubbleMtl;
+
+//
+    Objects.push_back(new bubble(0.5, vec(3.0, 1.0, 4.3), 0.014 * 1e-4));
+    Objects.back()->Mtl = bubbleMtl;
+
+    Objects.push_back(new bubble(0.5, vec(0.0, 1.0, 5.0), 0.014 * 1e-4));
+    Objects.back()->Mtl = bubbleMtl;
+
+    Objects.push_back(new bubble(0.5, vec(4.0, 3.0, 1.3), 0.014 * 1e-4));
+    Objects.back()->Mtl = bubbleMtl;
+
+    Objects.push_back(new bubble(0.5, vec(5.0, 1.0, 2.3), 0.014 * 1e-4));
+    Objects.back()->Mtl = bubbleMtl;
+
+    Objects.push_back(new bubble(0.5, vec(3.0, 3.5, 4.3), 0.014 * 1e-4));
+    Objects.back()->Mtl = bubbleMtl;
+
+    Objects.push_back(new bubble(0.5, vec(4.0, 1.5, 1.3), 0.014 * 1e-4));
+    Objects.back()->Mtl = bubbleMtl;
+
 
     /*Objects.push_back(new bubble(0.2, vec(5.0, 0.5, -4.3), 0.014 * 1e-4));
     Objects.back()->Mtl.Trans = 0.99;
@@ -95,12 +128,12 @@ scene::scene(VOID) : BackGround(0.2, 0.6, 0.4), MaxRecource(8), CurrentRecource(
     /*Objects.push_back(new sphere(0.1, vec(1, 3, 5)));
     Objects.back()->IsDebugObject = true;*/
 
-    Objects.push_back(new sphere(0.2, vec(-2.4, 0.9, 4.1)));
+  /*  Objects.push_back(new sphere(0.2, vec(-2.4, 0.9, 4.1)));
     Objects.back()->Mtl.Trans = 0.9;
     Objects.back()->Mtl.Envi.Refr = 1.6;
     Objects.back()->Mtl.Metallic = 0.1;
     Objects.back()->Mtl.Roughness = 0.05;
-    Objects.back()->Mtl.Albedo = color(1.0);
+    Objects.back()->Mtl.Albedo = color(1.0);*/
 
     ////Objects.push_back(new sphere(0.3, vec(-4.0, 0.5, 4.0)));
     /*Objects.push_back(new box(vec(-2.8, 0.5, 3.6), vec(-2.4, 0.9, 4.1)));

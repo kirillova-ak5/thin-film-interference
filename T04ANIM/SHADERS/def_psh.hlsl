@@ -91,13 +91,14 @@ float3 Shade2(float3 P, float3 N, float2 T)
 
   float3 V = normalize(P - CamLoc);
   V = -V;
-//  float3 LightPos = float3(10, 50, 50);
-  float3 LightPos = float3(5, 8, -3);
+  float3 LightPos = float3(10, 50, 50);
+//  float3 LightPos = float3(5, 8, -3);
   float3 LightColor = float(1).xxx;// float3(0.8, 1, 0.9);
   float LightDist = length(LightPos - P);
-//  float3 Ls[] = { normalize(LightPos - P), normalize(float3(50, 50, 10) - P), normalize(float3(-50, 50, -50) - P) };//normalize(float3(-40, 50, -50)) };
-  float3 LightPoss[] = { float3(5, 8, -3), float3(1, 3, 5) };
-  float3 Ls[] = { normalize(LightPos - P), normalize(float3(1, 3, 5) - P), normalize(float3(-50, 50, -50) - P) };//normalize(float3(-40, 50, -50)) };
+  float3 Ls[] = { normalize(float3(50, 50, 10) - P), normalize(float3(-10, 50, -10) - P), normalize(float3(-50, 50, -50) - P) };//normalize(float3(-40, 50, -50)) };
+  float3 LightPoss[] = { float3(10, 50, -50), float3(1, 3, 5) };
+//  float3 LightPoss[] = { float3(5, 8, -3), float3(1, 3, 5) };
+//  float3 Ls[] = { normalize(LightPos - P), normalize(float3(1, 3, 5) - P), normalize(float3(-50, 50, -50) - P) };//normalize(float3(-40, 50, -50)) };
   float3 L = normalize(LightPos - P);
   float3 R = normalize(reflect(V, N));
 
@@ -105,7 +106,7 @@ float3 Shade2(float3 P, float3 N, float2 T)
   //color += Ka;
 
   // for each light
-  for (int i = 0; i < 2; i++)
+  for (int i = 0; i < 1; i++)
   {
     L = Ls[i];
     float lDist = length(LightPoss[i] - P);

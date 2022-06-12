@@ -58,7 +58,7 @@ ragl::anim & ragl::anim::operator<<( ragl::unit *Uni )
  */
 VOID ragl::anim::Init( VOID )
 {
-  *this << new control(this, 1);
+  *this << new control(this, 0);
   IsInit = 1;
 } /* End of 'Init' method */
 

@@ -13,7 +13,7 @@ T(thickness)
   Color = color(0, 0, 243);
   S1 = sphere(R, C);
   S2 = sphere(R - thickness, C);
-  IsThinFilm = true;
+  IsThinFilm = false;
 }  /* End of default contructor method */
 
 DBL bubble::GetThick(VOID)

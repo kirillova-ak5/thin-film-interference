@@ -17,8 +17,10 @@ namespace ragl
   {
   public:
     /* Unit position */
-    DBL Speed;
-    vec2 Pos, Dir;
+    DBL Speed, TimeLastUpd;
+    vec2 Pos, Dir, OldPos;
+    vec2 OldDir;
+    vec2 NewDir;
     ragl::primitives sph;
     INT Id;
     static INT Taracounter;

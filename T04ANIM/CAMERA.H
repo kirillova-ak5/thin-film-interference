@@ -30,7 +30,7 @@ namespace mth
      *   RETURNS:
      *     - new camera;
      */
-    camera( VOID ) : W(1), H(1), ProjDist(1), Size(0.5), FarClip(1000),
+    camera( VOID ) : W(1), H(1), ProjDist(1.0), Size(0.5), FarClip(1000),
       Loc(mth::vec<Type>(20)), At(mth::vec<Type>(0)), Up(mth::vec<Type>(0, 1, 0)),
       MatrView(mth::matr<Type>::MatrView(Loc, At, Up))
     {

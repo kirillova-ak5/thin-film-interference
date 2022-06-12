@@ -455,7 +455,7 @@ VOID ragl::render::Resize( INT w, INT h )
  */
 VOID ragl::render::FrameStart( VOID )
 {
-  float clearColor[] = { 0.3, 0.47, 0.8, 1.0 };
+  float clearColor[] = { 0.01, 0.05, 0.3, 1.0 };
   DriverIterface->ClearRenderTargetView(ColorPassRTView, clearColor);
   DriverIterface->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
@@ -506,14 +506,18 @@ VOID ragl::render::FrameEnd( VOID )
   std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
   if (timed)
   {
-    std::chrono::duration<double, std::milli> time_span = std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(t1 - t);
-    duration += time_span.count();
+ //   std::chrono::duration<double, std::milli> time_span = std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(t1 - t);
+  //  duration += time_span.count();
   }
-  t = t1;
   timed = true;
+  if (FrameNum == 0)
+    t = t1;
   FrameNum++;
   if (FrameNum == 10000)
   {
+    std::chrono::duration<double, std::milli> time_span = std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(t1 - t);
+    duration += time_span.count();
+
     char buf[30];
     sprintf(buf, "TIME %lf\n", duration / 10000.0);
     OutputDebugString(buf);

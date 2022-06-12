@@ -70,8 +70,6 @@ float3 LookUp(float angle)
   };
   float3 table[] = {
   float3(0.0, 0.0, 0.0),
-  float3(0.0, 0.0, 0.0),
-  float3(0.0, 0.0, 0.0),
   //tableSRC[7] + tableSRC[6],
   float3(0.2, 0.5, 0.6),
   //tableSRC[3] + tableSRC[6],
@@ -82,13 +80,10 @@ float3 LookUp(float angle)
   };
   //angle -= PI / 16;
   //angle /= PI / 8;
-  if (angle > 0.995)
-    return pow(angle, 300).xxx;
-  if (angle <= 0.1 || angle >= 1.0)
+  if (angle <= 0.5 || angle >= 1.0)
     return float3(0.0, 0.0, 0.0);
-  angle -= 0.2;
-  angle = angle / 0.9 * 7.0;
- // angle *= 10; //table size
+  angle -= 0.5;
+  angle *= 10; //table size
   uint idx = uint(angle);
   float frac = angle - float(idx);
   //frac = 0.0;
@@ -115,12 +110,12 @@ float4 Shade2(float3 P, float3 N, float2 T)
 
   float3 V = normalize(P - CamLoc);
   V = -V;
-//  float3 LightPos = float3(10, 50, 50);
+  //  float3 LightPos = float3(10, 50, 50);
   float3 LightPos = float3(5, 8, -3);
   float3 LightColor = float(1).xxx;// float3(0.8, 1, 0.9);
   float LightDist = length(LightPos - P);
-//  float3 Ls[] = { normalize(LightPos - P), normalize(float3(50, 50, 10) - P), normalize(float3(-50, 50, -50) - P) };//normalize(float3(-40, 50, -50)) };
-  float3 Ls[] = { normalize(LightPos - P), normalize(float3(1, 3, 5) - P), normalize(float3(-50, 50, -50) - P) };//normalize(float3(-40, 50, -50)) };
+  float3 Ls[] = { normalize(float3(10, 50, 10) - P), normalize(float3(10, 50, 10) - P), normalize(float3(-50, 50, -50) - P) };//normalize(float3(-40, 50, -50)) };
+ // float3 Ls[] = { normalize(LightPos - P), normalize(float3(1, 3, 5) - P), normalize(float3(-50, 50, -50) - P) };//normalize(float3(-40, 50, -50)) };
   float3 L = normalize(LightPos - P);
   float3 R = normalize(reflect(V, N));
 
@@ -130,13 +125,12 @@ float4 Shade2(float3 P, float3 N, float2 T)
   color += Ka;
 
   float nv = max(dot(V, N), 0.0);
-  coef = 1.0 - pow((1.0 - nv), 17);
-  coef = pow(coef, 17);
-  float coef2 = coef;
+  coef = 1.0 - (1.0 - nv) * (1.0 - nv) * (1.0 - nv);// *(1.0 - nv)* (1.0 - nv);
+  coef = coef * coef * coef;// *coef* coef;
   float3 F0 = lerp(float3(0.04, 0.04, 0.04), albedo, metallic);
   float3 FresnelSchlick = F0 + ((float3(1.0, 1.0, 1.0) - F0) * pow(1.0 - nv, 5.0));
   // for each light
-  for (int i = 0; i < 2; i++)
+  for (int i = 0; i < 1; i++)
   {
     L = Ls[i];
     float nl = max(dot(N, L), 0.0);
@@ -168,102 +162,25 @@ float4 Shade2(float3 P, float3 N, float2 T)
     {
       float mean = (inter.x + inter.y + inter.z) / 3.0;
 
-      if (coef2 == coef)
-      {
-        if (hn < 0.995)
-        {
-          coef -= sqr(mean) / nv;
-          coef = max(coef, 0.0);
-          color += inter * 2.0 * pow(coef, 2);// *sqrt(1.0 - nv);// *(max(dot(Halfway, N), 0.0));
-        }
-        else
-        {
-          color += inter * 2.0;
-          coef -= mean;
-          coef = max(coef, 0.0);
-        }
-      }
-      else
-      {
-        if (hn < 0.995)
-        {
-          coef2 -= sqr(mean) / nv;
-          coef2 = max(coef2, 0.0);
-          color += inter * 2.0 * pow(coef2, 2);// *sqrt(1.0 - nv);// (max(dot(Halfway, N), 0.0));
-        }
-        else
-        {
-          color += inter * 2.0;
-          coef2 -= mean;
-          coef2 = max(coef2, 0.0);
-        }
-
-      }
+      //coef -= sqrt(mean / 5.0);
+      //return float4(mean.xxx * (1-coef.xxx), 1.0);
     }
-    
-     // return float4( sqr(sqr(1-coef)).xxx, 1.0);
     //return float4(0, 0, 0, 1);
+    color += inter / 6.0 * FresnelSchlick;// *(max(dot(Halfway, N), 0.0));
     //color = inter * (coef);
   }
-    coef = min(coef, coef2);
-  //return float4(sqr(nv).xxx / 5.0, 1.0);
+  //return float4(FresnelSchlick, 1.0);
   //return float4((1.0 * (1.0 - coef)).xxx, 1.0);
- //   return float4(coef.xxx, 1.0);
+
   //return float4((Trans * (1.0 - coef)).xxx, 1.0);
-  return float4(color, Trans * sqr(sqr(1.0 - coef)));
+  return float4(color, 1);
 }
-/*
-float4 Shade(float3 P, float3 N, float2 T)
-{
-  // Resut color
-  float3 color = float3(0, 0, 0);
-
-  float3 V = normalize(P - CamLoc);
-
-  //return N;// + float(1.0).xxx;
-  // Ambient
-  color += Ka;
-
-  // Diffuse
-  float3 LightPos = float3(0, 50, 4);
-  float3 LightColor = float(1).xxx;// float3(0.8, 1, 0.9);
-  float3 L = normalize(LightPos - P);
-
-  float3 Kds = Kd;
-  if (IsTex0 == 1)
-    Kds = Texture0.Sample(Sampler0, T) + 0.2 * Kd;
-  float nl = dot(L, N);
-  color += Kds * LightColor * max(nl, 0);
-
-  // Specular
-  float3 R = normalize(reflect(V, N));
-  float rl = max(dot(L, R), 0.0);
-
-  color += Ks * pow(max(rl, 0), Ph + 30);
-
-  color += Ka * 0.5;
-
-
-  float nv = max(dot(-V, N), 0);
-//  return float4(nv.xxx, 1.0);
-  float coef = 1.0 - (1.0 - nv) * (1.0 - nv)* (1.0 - nv)* (1.0 - nv)* (1.0 - nv);
-  coef = coef * coef * coef * coef * coef;
-  float tr = min(Trans * coef * 2.0, 1.0);
- //   return float4(tr.xxx, 1.0);
-
-  float3 inter = LookUp(sqrt(rl * nv));
-  if (inter.x > 0.01 || inter.y > 0.01 || inter.z > 0.01)
-  {
-    float mean = (inter.x + inter.y + inter.z) / 3.0;
-    coef *= 1.0 - 2.0 * mean;
-  }
-  color += inter;
-  return float4(color, Trans * (1.0 - coef));
-}*/
 
 
 float4 main(PS_INPUT input) : SV_Target
 {
   float4 sh = Shade2(input.OutWorldPoc, normalize(input.OutNormal), input.OutTexCoord);
+  float3 n = normalize(input.OutNormal);
+ // return float4(((n + 1.0) / 2.0).xyz, 1.0);
   return sh;
 }
